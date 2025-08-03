@@ -17,22 +17,43 @@ if (!preg_match('/^[\w\-\/]+$/', $branch)) {
 
 chdir(__DIR__ . '/../');  // path to your git repo root
 
-// First, check current branch
+$results = [];
+
+// Check current branch
 $currentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
 
-if ($currentBranch === $branch) {
-    echo json_encode(['error' => "Cannot delete the branch '$branch' as it is currently checked out. Please switch to another branch first."]);
-    exit;
+// --- Delete Local Branch ---
+$localBranches = explode("\n", git_exec('git branch'));
+$localBranches = array_map(function($b) { return trim(ltrim($b, '* ')); }, $localBranches);
+
+if (in_array($branch, $localBranches)) {
+    if ($currentBranch === $branch) {
+        $results['local'] = "Cannot delete local branch '$branch' because it is currently checked out.";
+    } else {
+        $localDelete = git_exec("git branch -D " . escapeshellarg($branch) . " 2>&1");
+        $results['local'] = $localDelete;
+    }
+} else {
+    $results['local'] = "Branch '$branch' does not exist locally.";
 }
 
-// Delete remote branch
-$remoteDelete = git_exec("git push origin --delete " . escapeshellarg($branch) . " 2>&1");
+// --- Delete Remote Branch ---
+git_exec('git fetch --all 2>&1');  // Make sure remotes are updated
+$remoteBranches = explode("\n", git_exec('git branch -r'));
+$remoteBranches = array_map(function($b) {
+    $b = trim($b);
+    if (strpos($b, 'origin/') === 0) {
+        return substr($b, 7);
+    }
+    return $b;
+}, $remoteBranches);
 
-// Delete local branch
-$localDelete = git_exec("git branch -D " . escapeshellarg($branch) . " 2>&1");
+if (in_array($branch, $remoteBranches)) {
+    $remoteDelete = git_exec("git push origin --delete " . escapeshellarg($branch) . " 2>&1");
+    $results['remote'] = $remoteDelete;
+} else {
+    $results['remote'] = "Branch '$branch' does not exist on remote.";
+}
 
-echo json_encode([
-    'remote_delete' => $remoteDelete,
-    'local_delete' => $localDelete,
-]);
+echo json_encode($results);
 ?>
