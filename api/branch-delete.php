@@ -9,6 +9,12 @@ if (!$branch) {
     exit;
 }
 
+// Protect deleting main branch
+if ($branch === 'main') {
+    echo json_encode(['error' => 'You cannot delete the main branch.']);
+    exit;
+}
+
 // Sanitize branch name to avoid injection
 if (!preg_match('/^[\w\-\/]+$/', $branch)) {
     echo json_encode(['error' => 'Invalid branch name']);
@@ -22,6 +28,19 @@ $results = [];
 // Check current branch
 $currentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
 
+// Switch to main branch if deleting the currently checked-out branch
+if ($currentBranch === $branch) {
+    $checkout = git_exec('git checkout main 2>&1');
+    $results['checkout'] = $checkout;
+
+    // Double-check if switch to main was successful
+    $newCurrentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
+    if ($newCurrentBranch !== 'main') {
+        echo json_encode(['error' => 'Failed to switch to main branch before deletion.', 'details' => $checkout]);
+        exit;
+    }
+}
+
 // --- Delete Local Branch ---
 $localBranches = explode("\n", git_exec('git branch'));
 $localBranches = array_map(function ($b) {
@@ -29,12 +48,8 @@ $localBranches = array_map(function ($b) {
 }, $localBranches);
 
 if (in_array($branch, $localBranches)) {
-    if ($currentBranch === $branch) {
-        $results['local'] = "Cannot delete local branch '$branch' because it is currently checked out.";
-    } else {
-        $localDelete = git_exec("git branch -D " . escapeshellarg($branch) . " 2>&1");
-        $results['local'] = $localDelete;
-    }
+    $localDelete = git_exec("git branch -D " . escapeshellarg($branch) . " 2>&1");
+    $results['local'] = $localDelete;
 } else {
     $results['local'] = "Branch '$branch' does not exist locally.";
 }
