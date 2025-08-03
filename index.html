@@ -95,6 +95,18 @@
       50% { opacity: 0; }
       100% { opacity: 1; }
     }
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col">
@@ -211,18 +223,6 @@
                 </div>
                 <span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>
               </div>
-              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center">
-                <div>
-                  <i class="fas fa-code-branch text-gray-400 mr-2"></i>
-                  <span>develop</span>
-                </div>
-              </div>
-              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center">
-                <div>
-                  <i class="fas fa-code-branch text-gray-400 mr-2"></i>
-                  <span>feature/login</span>
-                </div>
-              </div>
             </div>
           </div>
           
@@ -244,8 +244,6 @@
             <form id="branchSwitchForm" class="flex space-x-3">
               <select id="switchBranch" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
                 <option value="">Select branch to switch</option>
-                <option value="develop">develop</option>
-                <option value="feature/login">feature/login</option>
               </select>
               <button type="submit" class="git-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 rounded flex items-center">
                 <i class="fas fa-exchange-alt mr-1"></i> Switch
@@ -255,8 +253,6 @@
             <div class="flex space-x-3">
               <select id="branchToDelete" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
                 <option value="">Select branch to delete</option>
-                <option value="develop">develop</option>
-                <option value="feature/login">feature/login</option>
               </select>
               <button id="deleteBranchBtn" class="git-btn bg-red-600 hover:bg-red-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-trash-alt mr-1"></i> Delete
@@ -294,7 +290,7 @@
       <div class="flex justify-center space-x-6">
         <div>
           <i class="fas fa-code-branch text-green-400 mr-2"></i>
-          <span>main</span>
+          <span id="footerBranch">main</span>
         </div>
         <div>
           <i class="fas fa-circle text-green-500 mr-2"></i>
@@ -314,42 +310,64 @@
       const terminal = document.getElementById('terminalOutput');
       const branchListContainer = document.getElementById('branchListContainer');
       const currentBranchElement = document.getElementById('currentBranch');
+      const footerBranch = document.getElementById('footerBranch');
+      const switchBranchSelect = document.getElementById('switchBranch');
+      const deleteBranchSelect = document.getElementById('branchToDelete');
       
-      // Real branches data
-      let branches = [];
+      // State
       let currentBranch = 'main';
+      let branches = [];
       
-      // API base URL
-      const API_BASE = 'https://github.raihanmiraj.com/api.php';
-      
-      // Update branch display
-      function updateBranchDisplay() {
-        branchListContainer.innerHTML = '';
-        branches.forEach(branch => {
-          const isActive = branch === currentBranch;
-          const branchElement = document.createElement('div');
-          branchElement.className = `branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center ${isActive ? 'branch-active' : ''}`;
-          branchElement.innerHTML = `
-            <div>
-              <i class="fas fa-code-branch ${isActive ? 'text-purple-400' : 'text-gray-400'} mr-2"></i>
-              <span>${branch}</span>
-            </div>
-            ${isActive ? '<span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>' : ''}
-          `;
-          branchListContainer.appendChild(branchElement);
-        });
-        currentBranchElement.textContent = currentBranch;
+      // API call function
+      async function callGitAPI(action, params = {}) {
+        // Show loading in terminal
+        addTerminalOutput(`Executing git ${action}...`, 'command');
         
-        // Update branch selectors
-        document.querySelectorAll('#switchBranch, #branchToDelete').forEach(select => {
-          const currentValue = select.value;
-          select.innerHTML = `
-            <option value="">Select branch to ${select.id === 'switchBranch' ? 'switch' : 'delete'}</option>
-            ${branches.filter(b => b !== currentBranch).map(b => 
-              `<option value="${b}" ${b === currentValue ? 'selected' : ''}>${b}</option>`
-            ).join('')}
-          `;
-        });
+        try {
+          // Build query string
+          const queryParams = new URLSearchParams({ action, ...params }).toString();
+          
+          // Call API
+          const response = await fetch(`api.php?${queryParams}`);
+          const data = await response.json();
+          
+          // Handle response
+          if (data.error) {
+            addTerminalOutput(`Error: ${data.error}`, 'error');
+          } else if (data.output) {
+            // Split output into lines and display
+            data.output.split('\n').forEach(line => {
+              addTerminalOutput(line, 'success');
+            });
+            
+            // Special handling for branch operations
+            if (action === 'branch-list') {
+              updateBranchList(data.branches || []);
+            } else if (action === 'branch-switch') {
+              if (data.success) {
+                currentBranch = params.name;
+                updateBranchDisplay();
+              }
+            } else if (action === 'branch-create') {
+              if (data.success) {
+                // Add new branch to the list
+                branches.push(params.name);
+                updateBranchList(branches);
+              }
+            } else if (action === 'branch-delete') {
+              if (data.success) {
+                // Remove deleted branch
+                branches = branches.filter(b => b !== params.name);
+                updateBranchList(branches);
+              }
+            }
+          }
+          
+          return data;
+        } catch (error) {
+          addTerminalOutput(`Network error: ${error.message}`, 'error');
+          return { error: 'Network error occurred' };
+        }
       }
       
       // Add output to terminal
@@ -371,6 +389,68 @@
         terminal.scrollTop = terminal.scrollHeight;
       }
       
+      // Update branch list display
+      function updateBranchList(branchArray) {
+        branches = branchArray;
+        
+        // Clear existing branches
+        branchListContainer.innerHTML = '';
+        
+        // Add each branch
+        branches.forEach(branch => {
+          const isActive = branch === currentBranch;
+          const branchElement = document.createElement('div');
+          branchElement.className = `branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center ${isActive ? 'branch-active' : ''}`;
+          branchElement.innerHTML = `
+            <div>
+              <i class="fas fa-code-branch ${isActive ? 'text-purple-400' : 'text-gray-400'} mr-2"></i>
+              <span>${branch}</span>
+            </div>
+            ${isActive ? '<span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>' : ''}
+          `;
+          
+          // Add click handler to switch branch
+          if (!isActive) {
+            branchElement.addEventListener('click', () => {
+              callGitAPI('branch-switch', { name: branch });
+            });
+          }
+          
+          branchListContainer.appendChild(branchElement);
+        });
+        
+        // Update branch selects
+        updateBranchSelects();
+      }
+      
+      // Update branch select elements
+      function updateBranchSelects() {
+        // Switch branch select
+        switchBranchSelect.innerHTML = '<option value="">Select branch to switch</option>';
+        branches.filter(b => b !== currentBranch).forEach(branch => {
+          const option = document.createElement('option');
+          option.value = branch;
+          option.textContent = branch;
+          switchBranchSelect.appendChild(option);
+        });
+        
+        // Delete branch select
+        deleteBranchSelect.innerHTML = '<option value="">Select branch to delete</option>';
+        branches.filter(b => b !== currentBranch).forEach(branch => {
+          const option = document.createElement('option');
+          option.value = branch;
+          option.textContent = branch;
+          deleteBranchSelect.appendChild(option);
+        });
+      }
+      
+      // Update branch display
+      function updateBranchDisplay() {
+        currentBranchElement.textContent = currentBranch;
+        footerBranch.textContent = currentBranch;
+        updateBranchList(branches);
+      }
+      
       // Clear terminal
       document.getElementById('clearTerminal').addEventListener('click', () => {
         const lines = terminal.querySelectorAll('.output-line');
@@ -381,100 +461,60 @@
         });
       });
       
-      // Real API call function
-      async function callGitAction(action, data = {}) {
-        try {
-          // Show loading in terminal
-          addTerminalOutput(`Executing git ${action}...`, 'command');
-          
-          let url = `${API_BASE}?action=${action}`;
-          
-          // Add parameters for branch operations
-          if (data.name) {
-            url += `&name=${encodeURIComponent(data.name)}`;
-          }
-          
-          const response = await fetch(url);
-          const result = await response.json();
-          
-          // Display output in terminal
-          if (result.error) {
-            addTerminalOutput(`Error: ${result.error}`, 'error');
-          } else if (result.output) {
-            result.output.split('\n').forEach(line => {
-              if (line.trim()) {
-                addTerminalOutput(line, 'success');
-              }
-            });
-          }
-          
-          // Handle branch list updates
-          if (action === 'branch-list' && result.branches) {
-            branches = result.branches;
-            updateBranchDisplay();
-          }
-          
-          return result;
-        } catch (error) {
-          console.error('API Error:', error);
-          addTerminalOutput(`Error: Failed to execute ${action}`, 'error');
-          return { error: 'Network error' };
-        }
-      }
-      
-      // Load branches on page load
-      async function loadBranches() {
-        addTerminalOutput('Loading branches...', 'command');
-        await callGitAction('branch-list');
-      }
-      
       // Button event handlers
       document.getElementById('pullBtn').addEventListener('click', () => {
-        callGitAction('pull');
+        callGitAPI('pull');
       });
       
       document.getElementById('pushBtn').addEventListener('click', () => {
-        callGitAction('push');
+        callGitAPI('push');
       });
       
-      document.getElementById('branchCreateForm').addEventListener('submit', async (e) => {
+      document.getElementById('branchCreateForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const branchName = document.getElementById('newBranch').value.trim();
         if (branchName) {
-          const result = await callGitAction('branch-create', { name: branchName });
-          if (!result.error) {
-            document.getElementById('newBranch').value = '';
-            // Reload branches after creating
-            await callGitAction('branch-list');
-          }
+          callGitAPI('branch-create', { name: branchName });
+          document.getElementById('newBranch').value = '';
+        } else {
+          addTerminalOutput('Error: Branch name cannot be empty', 'error');
         }
       });
       
-      document.getElementById('branchSwitchForm').addEventListener('submit', async (e) => {
+      document.getElementById('branchSwitchForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const branchName = document.getElementById('switchBranch').value;
         if (branchName) {
-          const result = await callGitAction('branch-switch', { name: branchName });
-          if (!result.error) {
-            currentBranch = branchName;
-            updateBranchDisplay();
-          }
+          callGitAPI('branch-switch', { name: branchName });
+        } else {
+          addTerminalOutput('Error: Please select a branch to switch to', 'error');
         }
       });
       
-      document.getElementById('deleteBranchBtn').addEventListener('click', async () => {
+      document.getElementById('deleteBranchBtn').addEventListener('click', () => {
         const branchName = document.getElementById('branchToDelete').value;
-        if (branchName && confirm(`Are you sure you want to delete branch "${branchName}"?`)) {
-          const result = await callGitAction('branch-delete', { name: branchName });
-          if (!result.error) {
-            // Reload branches after deleting
-            await callGitAction('branch-list');
+        if (branchName) {
+          if (confirm(`Are you sure you want to delete branch "${branchName}"?`)) {
+            callGitAPI('branch-delete', { name: branchName });
           }
+        } else {
+          addTerminalOutput('Error: Please select a branch to delete', 'error');
         }
       });
       
-      // Initialize by loading branches
-      loadBranches();
+      // Initialize
+      async function initialize() {
+        // Fetch branches on load
+        const branchData = await callGitAPI('branch-list');
+        
+        if (branchData.branches && branchData.branches.length > 0) {
+          branches = branchData.branches;
+          currentBranch = branches.includes('main') ? 'main' : branches[0];
+          updateBranchDisplay();
+        }
+      }
+      
+      initialize();
     });
   </script>
 </body>
