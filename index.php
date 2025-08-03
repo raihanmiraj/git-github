@@ -14,7 +14,13 @@ switch ($request) {
     case 'branch-switch':
         require 'api/branch-switch.php';
         break;
+    case 'branch-delete':
+        require 'api/branch-delete.php';
+        break;
+    case 'branch-list':
+        require 'api/branch-list.php';
+        break;
+
     default:
         echo json_encode(['error' => 'Invalid Action']);
 }
-?>
