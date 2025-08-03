@@ -17,10 +17,22 @@ if (!preg_match('/^[\w\-\/]+$/', $branch)) {
 
 chdir(__DIR__ . '/../');  // path to your git repo root
 
+// First, check current branch
+$currentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
+
+if ($currentBranch === $branch) {
+    echo json_encode(['error' => "Cannot delete the branch '$branch' as it is currently checked out. Please switch to another branch first."]);
+    exit;
+}
+
 // Delete remote branch
-$cmd = "git push origin --delete " . escapeshellarg($branch) . " 2>&1";
-$output = git_exec($cmd);
+$remoteDelete = git_exec("git push origin --delete " . escapeshellarg($branch) . " 2>&1");
+
+// Delete local branch
+$localDelete = git_exec("git branch -D " . escapeshellarg($branch) . " 2>&1");
 
 echo json_encode([
-    'output' => $output,
+    'remote_delete' => $remoteDelete,
+    'local_delete' => $localDelete,
 ]);
+?>
