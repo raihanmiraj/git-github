@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,50 +37,89 @@
     .editor-container {
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
+
     .editor-content {
       min-height: 400px;
       max-height: 60vh;
       overflow: auto;
     }
+
     .line-numbers {
       user-select: none;
       text-align: right;
     }
+
     .code-editor {
       tab-size: 4;
       caret-color: #d4d4d4;
     }
+
     .code-editor:focus {
       outline: none;
     }
-    .tag { color: #569CD6; }
-    .attribute { color: #9CDCFE; }
-    .value { color: #CE9178; }
-    .comment { color: #6A9955; }
-    .keyword { color: #C586C0; }
-    .symbol { color: #d4d4d4; }
-    .text { color: #d4d4d4; }
+
+    .tag {
+      color: #569CD6;
+    }
+
+    .attribute {
+      color: #9CDCFE;
+    }
+
+    .value {
+      color: #CE9178;
+    }
+
+    .comment {
+      color: #6A9955;
+    }
+
+    .keyword {
+      color: #C586C0;
+    }
+
+    .symbol {
+      color: #d4d4d4;
+    }
+
+    .text {
+      color: #d4d4d4;
+    }
+
     .terminal {
       background-color: #1e1e1e;
       border-top: 2px solid #6f42c1;
     }
+
     .git-btn {
       transition: all 0.2s ease;
     }
+
     .git-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+
     .branch-active {
       box-shadow: 0 0 0 2px #6f42c1;
     }
+
     .output-line {
       animation: fadeIn 0.3s ease-out;
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     .blink-cursor:after {
       content: "";
       display: inline-block;
@@ -90,25 +130,39 @@
       animation: blink 1s infinite;
       vertical-align: middle;
     }
+
     @keyframes blink {
-      0% { opacity: 1; }
-      50% { opacity: 0; }
-      100% { opacity: 1; }
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
     }
+
     .loading {
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 3px solid rgba(255,255,255,.3);
+      border: 3px solid rgba(255, 255, 255, .3);
       border-radius: 50%;
       border-top-color: #fff;
       animation: spin 1s ease-in-out infinite;
     }
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
+
 <body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col">
   <!-- Header -->
   <header class="bg-gray-800 border-b border-gray-700">
@@ -124,7 +178,8 @@
           <i class="fas fa-code-branch text-purple-400 mr-2"></i>
           <span id="currentBranch" class="font-mono">main</span>
         </div>
-        <button id="saveBtn" class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
+        <button id="saveBtn"
+          class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
           <i class="fas fa-save mr-2"></i>Save
         </button>
       </div>
@@ -143,7 +198,7 @@
             <div class="line-numbers bg-editor-light text-gray-500 py-4 px-3 select-none">
               <pre>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20</pre>
             </div>
-            
+
             <!-- Code Editor -->
             <div class="flex-1 py-4 px-4">
               <pre class="m-0"><code class="code-editor block w-full min-h-full focus:outline-none" contenteditable="true" spellcheck="false">&lt;!DOCTYPE <span class="tag">html</span>&gt;
@@ -195,12 +250,14 @@
           <h2 class="text-lg font-semibold mb-4 flex items-center">
             <i class="fab fa-github text-purple-400 mr-2"></i> Repository Actions
           </h2>
-          
+
           <div class="grid grid-cols-2 gap-3">
-            <button id="pullBtn" class="git-btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
+            <button id="pullBtn"
+              class="git-btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
               <i class="fas fa-download mr-2"></i> Pull
             </button>
-            <button id="pushBtn" class="git-btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
+            <button id="pushBtn"
+              class="git-btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
               <i class="fas fa-upload mr-2"></i> Push
             </button>
           </div>
@@ -211,7 +268,7 @@
           <h2 class="text-lg font-semibold mb-4 flex items-center">
             <i class="fas fa-code-branch text-yellow-400 mr-2"></i> Branch Management
           </h2>
-          
+
           <!-- Branch List -->
           <div class="mb-4">
             <h3 class="text-sm font-medium mb-2 text-gray-400">Current Branches</h3>
@@ -225,36 +282,37 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Branch Actions -->
           <div class="space-y-3">
             <form id="branchCreateForm" class="flex space-x-3">
-              <input 
-                type="text" 
-                id="newBranch"
-                placeholder="New branch name" 
+              <input type="text" id="newBranch" placeholder="New branch name"
                 class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
-                required
-              >
-              <button type="submit" class="git-btn bg-purple-600 hover:bg-purple-700 text-white px-4 rounded flex items-center">
+                required>
+              <button type="submit"
+                class="git-btn bg-purple-600 hover:bg-purple-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-plus mr-1"></i> Create
               </button>
             </form>
-            
+
             <form id="branchSwitchForm" class="flex space-x-3">
-              <select id="switchBranch" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
+              <select id="switchBranch"
+                class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
                 <option value="">Select branch to switch</option>
               </select>
-              <button type="submit" class="git-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 rounded flex items-center">
+              <button type="submit"
+                class="git-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 rounded flex items-center">
                 <i class="fas fa-exchange-alt mr-1"></i> Switch
               </button>
             </form>
-            
+
             <div class="flex space-x-3">
-              <select id="branchToDelete" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+              <select id="branchToDelete"
+                class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
                 <option value="">Select branch to delete</option>
               </select>
-              <button id="deleteBranchBtn" class="git-btn bg-red-600 hover:bg-red-700 text-white px-4 rounded flex items-center">
+              <button id="deleteBranchBtn"
+                class="git-btn bg-red-600 hover:bg-red-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-trash-alt mr-1"></i> Delete
               </button>
             </div>
@@ -313,24 +371,24 @@
       const footerBranch = document.getElementById('footerBranch');
       const switchBranchSelect = document.getElementById('switchBranch');
       const deleteBranchSelect = document.getElementById('branchToDelete');
-      
+
       // State
       let currentBranch = 'main';
       let branches = [];
-      
+
       // API call function
       async function callGitAPI(action, params = {}) {
         // Show loading in terminal
         addTerminalOutput(`Executing git ${action}...`, 'command');
-        
+
         try {
           // Build query string
           const queryParams = new URLSearchParams({ action, ...params }).toString();
-          
+
           // Call API
-          const response = await fetch(`api.php?${queryParams}`);
+          const response = await fetch(`https://github.raihanmiraj.com/api.php?${queryParams}`);
           const data = await response.json();
-          
+
           // Handle response
           if (data.error) {
             addTerminalOutput(`Error: ${data.error}`, 'error');
@@ -339,7 +397,7 @@
             data.output.split('\n').forEach(line => {
               addTerminalOutput(line, 'success');
             });
-            
+
             // Special handling for branch operations
             if (action === 'branch-list') {
               updateBranchList(data.branches || []);
@@ -362,19 +420,19 @@
               }
             }
           }
-          
+
           return data;
         } catch (error) {
           addTerminalOutput(`Network error: ${error.message}`, 'error');
           return { error: 'Network error occurred' };
         }
       }
-      
+
       // Add output to terminal
       function addTerminalOutput(message, type = 'info') {
         const outputLine = document.createElement('div');
         outputLine.className = 'output-line';
-        
+
         if (type === 'command') {
           outputLine.innerHTML = `<span class="text-green-400">$</span> ${message}`;
         } else if (type === 'success') {
@@ -384,18 +442,18 @@
         } else {
           outputLine.innerHTML = `<span class="text-gray-300">></span> ${message}`;
         }
-        
+
         terminal.insertBefore(outputLine, terminal.lastElementChild);
         terminal.scrollTop = terminal.scrollHeight;
       }
-      
+
       // Update branch list display
       function updateBranchList(branchArray) {
         branches = branchArray;
-        
+
         // Clear existing branches
         branchListContainer.innerHTML = '';
-        
+
         // Add each branch
         branches.forEach(branch => {
           const isActive = branch === currentBranch;
@@ -408,21 +466,21 @@
             </div>
             ${isActive ? '<span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>' : ''}
           `;
-          
+
           // Add click handler to switch branch
           if (!isActive) {
             branchElement.addEventListener('click', () => {
               callGitAPI('branch-switch', { name: branch });
             });
           }
-          
+
           branchListContainer.appendChild(branchElement);
         });
-        
+
         // Update branch selects
         updateBranchSelects();
       }
-      
+
       // Update branch select elements
       function updateBranchSelects() {
         // Switch branch select
@@ -433,7 +491,7 @@
           option.textContent = branch;
           switchBranchSelect.appendChild(option);
         });
-        
+
         // Delete branch select
         deleteBranchSelect.innerHTML = '<option value="">Select branch to delete</option>';
         branches.filter(b => b !== currentBranch).forEach(branch => {
@@ -443,14 +501,14 @@
           deleteBranchSelect.appendChild(option);
         });
       }
-      
+
       // Update branch display
       function updateBranchDisplay() {
         currentBranchElement.textContent = currentBranch;
         footerBranch.textContent = currentBranch;
         updateBranchList(branches);
       }
-      
+
       // Clear terminal
       document.getElementById('clearTerminal').addEventListener('click', () => {
         const lines = terminal.querySelectorAll('.output-line');
@@ -460,16 +518,16 @@
           }
         });
       });
-      
+
       // Button event handlers
       document.getElementById('pullBtn').addEventListener('click', () => {
         callGitAPI('pull');
       });
-      
+
       document.getElementById('pushBtn').addEventListener('click', () => {
         callGitAPI('push');
       });
-      
+
       document.getElementById('branchCreateForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const branchName = document.getElementById('newBranch').value.trim();
@@ -480,7 +538,7 @@
           addTerminalOutput('Error: Branch name cannot be empty', 'error');
         }
       });
-      
+
       document.getElementById('branchSwitchForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const branchName = document.getElementById('switchBranch').value;
@@ -490,7 +548,7 @@
           addTerminalOutput('Error: Please select a branch to switch to', 'error');
         }
       });
-      
+
       document.getElementById('deleteBranchBtn').addEventListener('click', () => {
         const branchName = document.getElementById('branchToDelete').value;
         if (branchName) {
@@ -501,21 +559,22 @@
           addTerminalOutput('Error: Please select a branch to delete', 'error');
         }
       });
-      
+
       // Initialize
       async function initialize() {
         // Fetch branches on load
         const branchData = await callGitAPI('branch-list');
-        
+
         if (branchData.branches && branchData.branches.length > 0) {
           branches = branchData.branches;
           currentBranch = branches.includes('main') ? 'main' : branches[0];
           updateBranchDisplay();
         }
       }
-      
+
       initialize();
     });
   </script>
 </body>
+
 </html>
