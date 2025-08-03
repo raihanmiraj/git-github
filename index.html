@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Professional GitHub Editor - test.html</title>
+  <title>Professional GitHub Editor</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -36,12 +36,9 @@
     .editor-container {
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
-    .editor-toolbar button:not(:last-child) {
-      margin-right: 8px;
-    }
     .editor-content {
       min-height: 400px;
-      max-height: 70vh;
+      max-height: 60vh;
       overflow: auto;
     }
     .line-numbers {
@@ -76,6 +73,28 @@
     .branch-active {
       box-shadow: 0 0 0 2px #6f42c1;
     }
+    .output-line {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .blink-cursor:after {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: #28a745;
+      margin-left: 4px;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col">
@@ -93,15 +112,9 @@
           <i class="fas fa-code-branch text-purple-400 mr-2"></i>
           <span id="currentBranch" class="font-mono">main</span>
         </div>
-        <button class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-md text-sm font-medium transition-colors">
-          <i class="fas fa-play mr-2"></i>Preview
+        <button id="saveBtn" class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
+          <i class="fas fa-save mr-2"></i>Save
         </button>
-        <div class="relative">
-          <button class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
-            <i class="fas fa-save mr-2"></i>Save
-          </button>
-          <span class="absolute -top-2 -right-2 bg-gray-700 text-xs px-1.5 py-0.5 rounded-full">⌘S</span>
-        </div>
       </div>
     </div>
   </header>
@@ -112,35 +125,6 @@
       <!-- Editor Column -->
       <div class="lg:col-span-2">
         <div class="editor-container bg-editor-dark rounded-lg overflow-hidden">
-          <!-- Editor Toolbar -->
-          <div class="editor-toolbar bg-editor-light px-4 py-2.5 border-b border-editor-accent">
-            <div class="flex flex-wrap">
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-bold mr-1"></i>Bold
-              </button>
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-italic mr-1"></i>Italic
-              </button>
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-link mr-1"></i>Link
-              </button>
-              <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-code mr-1"></i>Code
-              </button>
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-list-ul mr-1"></i>List
-              </button>
-              <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-undo mr-1"></i>Undo
-              </button>
-              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-                <i class="fas fa-redo mr-1"></i>Redo
-              </button>
-            </div>
-          </div>
-
           <!-- Editor Content -->
           <div class="editor-content flex font-mono text-sm">
             <!-- Line Numbers -->
@@ -201,10 +185,10 @@
           </h2>
           
           <div class="grid grid-cols-2 gap-3">
-            <button class="git-btn bg-github-blue hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
+            <button id="pullBtn" class="git-btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
               <i class="fas fa-download mr-2"></i> Pull
             </button>
-            <button class="git-btn bg-github-green hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
+            <button id="pushBtn" class="git-btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
               <i class="fas fa-upload mr-2"></i> Push
             </button>
           </div>
@@ -219,7 +203,7 @@
           <!-- Branch List -->
           <div class="mb-4">
             <h3 class="text-sm font-medium mb-2 text-gray-400">Current Branches</h3>
-            <div class="max-h-40 overflow-y-auto">
+            <div id="branchListContainer" class="max-h-40 overflow-y-auto">
               <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center branch-active">
                 <div>
                   <i class="fas fa-code-branch text-purple-400 mr-2"></i>
@@ -239,48 +223,42 @@
                   <span>feature/login</span>
                 </div>
               </div>
-              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center">
-                <div>
-                  <i class="fas fa-code-branch text-gray-400 mr-2"></i>
-                  <span>bugfix/header</span>
-                </div>
-              </div>
             </div>
           </div>
           
           <!-- Branch Actions -->
           <div class="space-y-3">
-            <div class="flex space-x-3">
+            <form id="branchCreateForm" class="flex space-x-3">
               <input 
                 type="text" 
+                id="newBranch"
                 placeholder="New branch name" 
                 class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                required
               >
-              <button class="git-btn bg-github-purple hover:bg-purple-700 text-white px-4 rounded flex items-center">
+              <button type="submit" class="git-btn bg-purple-600 hover:bg-purple-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-plus mr-1"></i> Create
               </button>
-            </div>
+            </form>
             
-            <div class="flex space-x-3">
-              <select class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
-                <option>Select branch to switch</option>
-                <option>develop</option>
-                <option>feature/login</option>
-                <option>bugfix/header</option>
+            <form id="branchSwitchForm" class="flex space-x-3">
+              <select id="switchBranch" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
+                <option value="">Select branch to switch</option>
+                <option value="develop">develop</option>
+                <option value="feature/login">feature/login</option>
               </select>
-              <button class="git-btn bg-github-yellow hover:bg-yellow-700 text-gray-900 px-4 rounded flex items-center">
+              <button type="submit" class="git-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 rounded flex items-center">
                 <i class="fas fa-exchange-alt mr-1"></i> Switch
               </button>
-            </div>
+            </form>
             
             <div class="flex space-x-3">
-              <select class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
-                <option>Select branch to delete</option>
-                <option>develop</option>
-                <option>feature/login</option>
-                <option>bugfix/header</option>
+              <select id="branchToDelete" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                <option value="">Select branch to delete</option>
+                <option value="develop">develop</option>
+                <option value="feature/login">feature/login</option>
               </select>
-              <button class="git-btn bg-github-red hover:bg-red-700 text-white px-4 rounded flex items-center">
+              <button id="deleteBranchBtn" class="git-btn bg-red-600 hover:bg-red-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-trash-alt mr-1"></i> Delete
               </button>
             </div>
@@ -294,59 +272,17 @@
               <i class="fas fa-terminal text-green-400 mr-2"></i> Terminal
             </h2>
             <div class="flex space-x-2">
-              <button class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">
-                <i class="fas fa-sync"></i>
-              </button>
-              <button class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">
-                <i class="fas fa-times"></i>
+              <button id="clearTerminal" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">
+                <i class="fas fa-broom"></i> Clear
               </button>
             </div>
           </div>
-          <div class="terminal p-4 flex-1 overflow-y-auto font-mono text-sm">
-            <div class="text-green-400">$ git status</div>
-            <div class="text-gray-300 ml-4">On branch main</div>
-            <div class="text-gray-300 ml-4">Your branch is up to date with 'origin/main'.</div>
-            <br>
-            <div class="text-green-400">$ git pull origin main</div>
-            <div class="text-gray-300 ml-4">From https://github.com/user/repo</div>
-            <div class="text-gray-300 ml-4"> * branch            main       -> FETCH_HEAD</div>
-            <div class="text-gray-300 ml-4">Already up to date.</div>
-            <br>
-            <div class="text-green-400">$ git branch</div>
-            <div class="text-gray-300 ml-4">  bugfix/header</div>
-            <div class="text-gray-300 ml-4">  develop</div>
-            <div class="text-gray-300 ml-4">* <span class="text-green-400">main</span></div>
-            <div class="text-gray-300 ml-4">  feature/login</div>
-            <br>
-            <div class="text-green-400">$</div>
+          <div id="terminalOutput" class="terminal p-4 flex-1 overflow-y-auto font-mono text-sm">
+            <div class="output-line text-green-400">$ Welcome to GitHub Editor</div>
+            <div class="output-line text-gray-300">> Ready to execute Git commands</div>
+            <div class="output-line text-gray-300">> Current branch: <span class="text-purple-400">main</span></div>
+            <div class="output-line mt-4 blink-cursor">$</div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- File Info Panel -->
-    <div class="mt-8 bg-gray-800 rounded-lg p-6">
-      <h2 class="text-lg font-semibold mb-4 flex items-center">
-        <i class="fas fa-info-circle text-blue-400 mr-2"></i> Repository Information
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-gray-700 p-4 rounded-lg">
-          <h3 class="font-medium text-sm mb-2 text-gray-300">Repository</h3>
-          <p class="text-xs"><span class="text-gray-400">Name:</span> professional-editor</p>
-          <p class="text-xs"><span class="text-gray-400">Owner:</span> github-user</p>
-          <p class="text-xs"><span class="text-gray-400">URL:</span> github.com/user/pro-editor</p>
-        </div>
-        <div class="bg-gray-700 p-4 rounded-lg">
-          <h3 class="font-medium text-sm mb-2 text-gray-300">Status</h3>
-          <p class="text-xs"><span class="text-gray-400">Changes:</span> 2 modified files</p>
-          <p class="text-xs"><span class="text-gray-400">Last commit:</span> 30 minutes ago</p>
-          <p class="text-xs"><span class="text-gray-400">Last push:</span> 2 hours ago</p>
-        </div>
-        <div class="bg-gray-700 p-4 rounded-lg">
-          <h3 class="font-medium text-sm mb-2 text-gray-300">Collaboration</h3>
-          <p class="text-xs"><span class="text-gray-400">Collaborators:</span> 3</p>
-          <p class="text-xs"><span class="text-gray-400">Active now:</span> 2</p>
-          <p class="text-xs"><span class="text-gray-400">Permissions:</span> Read/Write</p>
         </div>
       </div>
     </div>
@@ -374,54 +310,185 @@
   </footer>
 
   <script>
-    // Basic editor functionality
     document.addEventListener('DOMContentLoaded', () => {
-      const editor = document.querySelector('.code-editor');
-      const lineNumbers = document.querySelector('.line-numbers pre');
+      const terminal = document.getElementById('terminalOutput');
+      const branchListContainer = document.getElementById('branchListContainer');
+      const currentBranchElement = document.getElementById('currentBranch');
       
-      // Focus the editor on load
-      editor.focus();
+      // Simulated branches data
+      let branches = ['main', 'develop', 'feature/login'];
+      let currentBranch = 'main';
       
-      // Update line numbers based on content
-      function updateLineNumbers() {
-        const lines = editor.textContent.split('\n').length;
-        let numbers = '';
-        for (let i = 1; i <= lines; i++) {
-          numbers += i + '<br>';
-        }
-        lineNumbers.innerHTML = numbers;
+      // Update branch display
+      function updateBranchDisplay() {
+        branchListContainer.innerHTML = '';
+        branches.forEach(branch => {
+          const isActive = branch === currentBranch;
+          const branchElement = document.createElement('div');
+          branchElement.className = `branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center ${isActive ? 'branch-active' : ''}`;
+          branchElement.innerHTML = `
+            <div>
+              <i class="fas fa-code-branch ${isActive ? 'text-purple-400' : 'text-gray-400'} mr-2"></i>
+              <span>${branch}</span>
+            </div>
+            ${isActive ? '<span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>' : ''}
+          `;
+          branchListContainer.appendChild(branchElement);
+        });
+        currentBranchElement.textContent = currentBranch;
+        
+        // Update branch selector
+        document.querySelectorAll('#switchBranch, #branchToDelete').forEach(select => {
+          const currentValue = select.value;
+          select.innerHTML = `
+            <option value="">Select branch to ${select.id === 'switchBranch' ? 'switch' : 'delete'}</option>
+            ${branches.filter(b => b !== currentBranch).map(b => 
+              `<option value="${b}" ${b === currentValue ? 'selected' : ''}>${b}</option>`
+            ).join('')}
+          `;
+        });
       }
       
-      // Initial update
-      updateLineNumbers();
+      // Add output to terminal
+      function addTerminalOutput(message, type = 'info') {
+        const outputLine = document.createElement('div');
+        outputLine.className = 'output-line';
+        
+        if (type === 'command') {
+          outputLine.innerHTML = `<span class="text-green-400">$</span> ${message}`;
+        } else if (type === 'success') {
+          outputLine.innerHTML = `<span class="text-green-300">></span> ${message}`;
+        } else if (type === 'error') {
+          outputLine.innerHTML = `<span class="text-red-400">!</span> ${message}`;
+        } else {
+          outputLine.innerHTML = `<span class="text-gray-300">></span> ${message}`;
+        }
+        
+        terminal.insertBefore(outputLine, terminal.lastElementChild);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
       
-      // Update on input
-      editor.addEventListener('input', updateLineNumbers);
-      
-      // Branch selection
-      const branchItems = document.querySelectorAll('.branch-item');
-      branchItems.forEach(item => {
-        item.addEventListener('click', () => {
-          branchItems.forEach(b => b.classList.remove('branch-active'));
-          item.classList.add('branch-active');
-          document.getElementById('currentBranch').textContent = 
-            item.querySelector('span').textContent;
+      // Clear terminal
+      document.getElementById('clearTerminal').addEventListener('click', () => {
+        const lines = terminal.querySelectorAll('.output-line');
+        lines.forEach((line, index) => {
+          if (index < lines.length - 1) {
+            line.remove();
+          }
         });
       });
       
-      // Git buttons animation
-      const gitButtons = document.querySelectorAll('.git-btn');
-      gitButtons.forEach(btn => {
-        btn.addEventListener('mousedown', () => {
-          btn.style.transform = 'translateY(1px)';
+      // Simulate API call
+      function callGitAction(action, data = {}) {
+        return new Promise((resolve) => {
+          // Show loading in terminal
+          addTerminalOutput(`Executing git ${action}...`, 'command');
+          
+          // Simulate API delay
+          setTimeout(() => {
+            let response = { output: '', error: null };
+            
+            switch(action) {
+              case 'pull':
+                response.output = `From https://github.com/user/repo
+ * branch            main       -> FETCH_HEAD
+Already up to date.`;
+                break;
+              case 'push':
+                response.output = `Counting objects: 3, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 312 bytes | 312.00 KiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0)
+To https://github.com/user/repo.git
+   2d4b5a8..f1e2d3c  main -> main`;
+                break;
+              case 'branch-create':
+                if (!data.name) {
+                  response.error = "Branch name cannot be empty";
+                } else if (branches.includes(data.name)) {
+                  response.error = `Branch '${data.name}' already exists`;
+                } else {
+                  branches.push(data.name);
+                  response.output = `Switched to a new branch '${data.name}'`;
+                  updateBranchDisplay();
+                }
+                break;
+              case 'branch-switch':
+                if (!data.name) {
+                  response.error = "Please select a branch to switch to";
+                } else if (!branches.includes(data.name)) {
+                  response.error = `Branch '${data.name}' does not exist`;
+                } else {
+                  currentBranch = data.name;
+                  response.output = `Switched to branch '${data.name}'`;
+                  updateBranchDisplay();
+                }
+                break;
+              case 'branch-delete':
+                if (!data.name) {
+                  response.error = "Please select a branch to delete";
+                } else if (data.name === currentBranch) {
+                  response.error = `Cannot delete the currently active branch '${data.name}'`;
+                } else if (!branches.includes(data.name)) {
+                  response.error = `Branch '${data.name}' does not exist`;
+                } else {
+                  branches = branches.filter(b => b !== data.name);
+                  response.output = `Deleted branch '${data.name}'`;
+                  updateBranchDisplay();
+                }
+                break;
+            }
+            
+            // Display output in terminal
+            if (response.error) {
+              addTerminalOutput(`Error: ${response.error}`, 'error');
+            } else if (response.output) {
+              response.output.split('\n').forEach(line => {
+                addTerminalOutput(line, 'success');
+              });
+            }
+            
+            resolve(response);
+          }, 1000);
         });
-        btn.addEventListener('mouseup', () => {
-          btn.style.transform = 'translateY(0)';
-        });
-        btn.addEventListener('mouseleave', () => {
-          btn.style.transform = 'translateY(0)';
-        });
+      }
+      
+      // Button event handlers
+      document.getElementById('pullBtn').addEventListener('click', () => {
+        callGitAction('pull');
       });
+      
+      document.getElementById('pushBtn').addEventListener('click', () => {
+        callGitAction('push');
+      });
+      
+      document.getElementById('branchCreateForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const branchName = document.getElementById('newBranch').value.trim();
+        if (branchName) {
+          callGitAction('branch-create', { name: branchName });
+          document.getElementById('newBranch').value = '';
+        }
+      });
+      
+      document.getElementById('branchSwitchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const branchName = document.getElementById('switchBranch').value;
+        if (branchName) {
+          callGitAction('branch-switch', { name: branchName });
+        }
+      });
+      
+      document.getElementById('deleteBranchBtn').addEventListener('click', () => {
+        const branchName = document.getElementById('branchToDelete').value;
+        if (branchName && confirm(`Are you sure you want to delete branch "${branchName}"?`)) {
+          callGitAction('branch-delete', { name: branchName });
+        }
+      });
+      
+      // Initialize branch display
+      updateBranchDisplay();
     });
   </script>
 </body>
