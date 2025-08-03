@@ -1,18 +1,23 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require 'execute.php';  // your helper to run shell commands
 
-require __DIR__ . '/execute.php';
-chdir(__DIR__ . '/../');
+chdir(__DIR__ . '/../');  // path to your git repo root
 
-$output = git_exec('git branch --format="%(refname:short)"');
-if (!$output) {
-    echo json_encode(['error' => 'Failed to get branches']);
-    exit;
+// Fetch latest remote info
+git_exec('git fetch --all 2>&1');
+
+// Get remote branches
+$output = git_exec('git branch -r');
+
+$branches = [];
+foreach (explode("\n", $output) as $line) {
+    $line = trim($line);
+    // Remove origin/ prefix and HEAD reference
+    if ($line && strpos($line, 'origin/HEAD') === false) {
+        $branches[] = preg_replace('/^origin\//', '', $line);
+    }
 }
 
-// Parse branches into array
-$branches = array_filter(array_map('trim', explode("\n", $output)));
-
-echo json_encode(['branches' => $branches]);
+echo json_encode([
+    'branches' => $branches,
+]);
