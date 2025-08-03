@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Professional Text Editor - test.html</title>
+  <title>Professional GitHub Editor - test.html</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -16,6 +16,13 @@
               light: '#2d2d2d',
               accent: '#3a3a3a',
               highlight: '#333333'
+            },
+            github: {
+              purple: '#6f42c1',
+              green: '#28a745',
+              blue: '#0366d6',
+              red: '#d73a49',
+              yellow: '#ffd33d'
             }
           },
           fontFamily: {
@@ -55,8 +62,19 @@
     .keyword { color: #C586C0; }
     .symbol { color: #d4d4d4; }
     .text { color: #d4d4d4; }
-    .line-highlight {
-      background-color: rgba(97, 97, 97, 0.2);
+    .terminal {
+      background-color: #1e1e1e;
+      border-top: 2px solid #6f42c1;
+    }
+    .git-btn {
+      transition: all 0.2s ease;
+    }
+    .git-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .branch-active {
+      box-shadow: 0 0 0 2px #6f42c1;
     }
   </style>
 </head>
@@ -65,11 +83,16 @@
   <header class="bg-gray-800 border-b border-gray-700">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center">
+        <i class="fab fa-github text-gray-300 text-xl mr-2"></i>
         <i class="fas fa-file-code text-blue-400 text-xl mr-3"></i>
         <h1 class="text-xl font-semibold">test.html</h1>
         <span class="ml-4 text-sm px-2 py-1 bg-gray-700 rounded text-gray-300">HTML</span>
       </div>
       <div class="flex items-center space-x-3">
+        <div class="flex items-center bg-gray-700 px-3 py-1 rounded-md">
+          <i class="fas fa-code-branch text-purple-400 mr-2"></i>
+          <span id="currentBranch" class="font-mono">main</span>
+        </div>
         <button class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-md text-sm font-medium transition-colors">
           <i class="fas fa-play mr-2"></i>Preview
         </button>
@@ -84,117 +107,246 @@
   </header>
 
   <!-- Main Content -->
-  <main class="flex-1 container mx-auto px-4 py-8">
-    <div class="editor-container bg-editor-dark rounded-lg overflow-hidden">
-      <!-- Editor Toolbar -->
-      <div class="editor-toolbar bg-editor-light px-4 py-2.5 border-b border-editor-accent">
-        <div class="flex flex-wrap">
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-bold mr-1"></i>Bold
-          </button>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-italic mr-1"></i>Italic
-          </button>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-link mr-1"></i>Link
-          </button>
-          <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-code mr-1"></i>Code
-          </button>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-list-ul mr-1"></i>List
-          </button>
-          <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-undo mr-1"></i>Undo
-          </button>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-redo mr-1"></i>Redo
-          </button>
-          <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-search mr-1"></i>Find
-          </button>
-          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
-            <i class="fas fa-exchange-alt mr-1"></i>Replace
-          </button>
-        </div>
-      </div>
+  <main class="flex-1 container mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Editor Column -->
+      <div class="lg:col-span-2">
+        <div class="editor-container bg-editor-dark rounded-lg overflow-hidden">
+          <!-- Editor Toolbar -->
+          <div class="editor-toolbar bg-editor-light px-4 py-2.5 border-b border-editor-accent">
+            <div class="flex flex-wrap">
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-bold mr-1"></i>Bold
+              </button>
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-italic mr-1"></i>Italic
+              </button>
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-link mr-1"></i>Link
+              </button>
+              <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-code mr-1"></i>Code
+              </button>
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-list-ul mr-1"></i>List
+              </button>
+              <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-undo mr-1"></i>Undo
+              </button>
+              <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+                <i class="fas fa-redo mr-1"></i>Redo
+              </button>
+            </div>
+          </div>
 
-      <!-- Editor Content -->
-      <div class="editor-content flex font-mono text-sm">
-        <!-- Line Numbers -->
-        <div class="line-numbers bg-editor-light text-gray-500 py-4 px-3 select-none">
-          <pre>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20</pre>
-        </div>
-        
-        <!-- Code Editor -->
-        <div class="flex-1 py-4 px-4">
-          <pre class="m-0"><code class="code-editor block w-full min-h-full focus:outline-none" contenteditable="true" spellcheck="false">&lt;!DOCTYPE <span class="tag">html</span>&gt;
+          <!-- Editor Content -->
+          <div class="editor-content flex font-mono text-sm">
+            <!-- Line Numbers -->
+            <div class="line-numbers bg-editor-light text-gray-500 py-4 px-3 select-none">
+              <pre>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20</pre>
+            </div>
+            
+            <!-- Code Editor -->
+            <div class="flex-1 py-4 px-4">
+              <pre class="m-0"><code class="code-editor block w-full min-h-full focus:outline-none" contenteditable="true" spellcheck="false">&lt;!DOCTYPE <span class="tag">html</span>&gt;
 &lt;<span class="tag">html</span> <span class="attribute">lang</span>=<span class="value">"en"</span>&gt;
 &lt;<span class="tag">head</span>&gt;
   &lt;<span class="tag">meta</span> <span class="attribute">charset</span>=<span class="value">"UTF-8"</span> /&gt;
   &lt;<span class="tag">meta</span> <span class="attribute">name</span>=<span class="value">"viewport"</span> <span class="attribute">content</span>=<span class="value">"width=device-width, initial-scale=1"</span> /&gt;
-  &lt;<span class="tag">title</span>&gt;Professional Text Editor&lt;/<span class="tag">title</span>&gt;
+  &lt;<span class="tag">title</span>&gt;GitHub Editor&lt;/<span class="tag">title</span>&gt;
   &lt;<span class="tag">link</span> <span class="attribute">rel</span>=<span class="value">"stylesheet"</span> <span class="attribute">href</span>=<span class="value">"styles.css"</span> /&gt;
 &lt;/<span class="tag">head</span>&gt;
 &lt;<span class="tag">body</span> <span class="attribute">class</span>=<span class="value">"bg-gray-100"</span>&gt;
   &lt;<span class="tag">div</span> <span class="attribute">class</span>=<span class="value">"container mx-auto py-8"</span>&gt;
-    &lt;<span class="tag">h1</span> <span class="attribute">class</span>=<span class="value">"text-3xl font-bold mb-6"</span>&gt;Welcome to the Editor&lt;/<span class="tag">h1</span>&gt;
-    &lt;<span class="tag">p</span>&gt;This is a professionally designed text editor for your HTML files.&lt;/<span class="tag">p</span>&gt;
+    &lt;<span class="tag">h1</span> <span class="attribute">class</span>=<span class="value">"text-3xl font-bold mb-6"</span>&gt;GitHub Editor&lt;/<span class="tag">h1</span>&gt;
+    &lt;<span class="tag">p</span>&gt;Edit and manage your code with integrated GitHub controls.&lt;/<span class="tag">p</span>&gt;
     
     &lt;<span class="tag">div</span> <span class="attribute">class</span>=<span class="value">"mt-8 p-6 bg-white rounded-lg shadow"</span>&gt;
       &lt;<span class="tag">h2</span> <span class="attribute">class</span>=<span class="value">"text-xl font-semibold mb-4"</span>&gt;Features&lt;/<span class="tag">h2</span>&gt;
       &lt;<span class="tag">ul</span> <span class="attribute">class</span>=<span class="value">"list-disc pl-6"</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Syntax highlighting for HTML&lt;/<span class="tag">li</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Line numbers&lt;/<span class="tag">li</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Responsive design&lt;/<span class="tag">li</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Professional UI&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Branch management&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Push and pull functionality&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Integrated terminal&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Real-time collaboration&lt;/<span class="tag">li</span>&gt;
       &lt;/<span class="tag">ul</span>&gt;
     &lt;/<span class="tag">div</span>&gt;
   &lt;/<span class="tag">div</span>&gt;
 &lt;/<span class="tag">body</span>&gt;
 &lt;/<span class="tag">html</span>&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="mt-4 flex justify-between text-xs text-gray-500">
+          <div>
+            <span class="mr-4">Lines: 20</span>
+            <span>Column: 12</span>
+          </div>
+          <div>
+            <span class="mr-4">UTF-8</span>
+            <span>HTML</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Status Bar -->
-    <div class="mt-4 flex justify-between text-xs text-gray-500">
-      <div>
-        <span class="mr-4">Lines: 20</span>
-        <span>Column: 12</span>
-      </div>
-      <div>
-        <span class="mr-4">UTF-8</span>
-        <span>HTML</span>
+      <!-- GitHub Controls Column -->
+      <div class="flex flex-col space-y-6">
+        <!-- Git Actions -->
+        <div class="bg-gray-800 rounded-lg p-5">
+          <h2 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fab fa-github text-purple-400 mr-2"></i> Repository Actions
+          </h2>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <button class="git-btn bg-github-blue hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
+              <i class="fas fa-download mr-2"></i> Pull
+            </button>
+            <button class="git-btn bg-github-green hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
+              <i class="fas fa-upload mr-2"></i> Push
+            </button>
+          </div>
+        </div>
+
+        <!-- Branch Management -->
+        <div class="bg-gray-800 rounded-lg p-5">
+          <h2 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-code-branch text-yellow-400 mr-2"></i> Branch Management
+          </h2>
+          
+          <!-- Branch List -->
+          <div class="mb-4">
+            <h3 class="text-sm font-medium mb-2 text-gray-400">Current Branches</h3>
+            <div class="max-h-40 overflow-y-auto">
+              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center branch-active">
+                <div>
+                  <i class="fas fa-code-branch text-purple-400 mr-2"></i>
+                  <span>main</span>
+                </div>
+                <span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>
+              </div>
+              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center">
+                <div>
+                  <i class="fas fa-code-branch text-gray-400 mr-2"></i>
+                  <span>develop</span>
+                </div>
+              </div>
+              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center">
+                <div>
+                  <i class="fas fa-code-branch text-gray-400 mr-2"></i>
+                  <span>feature/login</span>
+                </div>
+              </div>
+              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center">
+                <div>
+                  <i class="fas fa-code-branch text-gray-400 mr-2"></i>
+                  <span>bugfix/header</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Branch Actions -->
+          <div class="space-y-3">
+            <div class="flex space-x-3">
+              <input 
+                type="text" 
+                placeholder="New branch name" 
+                class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+              >
+              <button class="git-btn bg-github-purple hover:bg-purple-700 text-white px-4 rounded flex items-center">
+                <i class="fas fa-plus mr-1"></i> Create
+              </button>
+            </div>
+            
+            <div class="flex space-x-3">
+              <select class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
+                <option>Select branch to switch</option>
+                <option>develop</option>
+                <option>feature/login</option>
+                <option>bugfix/header</option>
+              </select>
+              <button class="git-btn bg-github-yellow hover:bg-yellow-700 text-gray-900 px-4 rounded flex items-center">
+                <i class="fas fa-exchange-alt mr-1"></i> Switch
+              </button>
+            </div>
+            
+            <div class="flex space-x-3">
+              <select class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                <option>Select branch to delete</option>
+                <option>develop</option>
+                <option>feature/login</option>
+                <option>bugfix/header</option>
+              </select>
+              <button class="git-btn bg-github-red hover:bg-red-700 text-white px-4 rounded flex items-center">
+                <i class="fas fa-trash-alt mr-1"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="bg-gray-800 rounded-lg flex-1 flex flex-col">
+          <div class="flex justify-between items-center px-5 py-3 border-b border-gray-700">
+            <h2 class="text-lg font-semibold flex items-center">
+              <i class="fas fa-terminal text-green-400 mr-2"></i> Terminal
+            </h2>
+            <div class="flex space-x-2">
+              <button class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">
+                <i class="fas fa-sync"></i>
+              </button>
+              <button class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div class="terminal p-4 flex-1 overflow-y-auto font-mono text-sm">
+            <div class="text-green-400">$ git status</div>
+            <div class="text-gray-300 ml-4">On branch main</div>
+            <div class="text-gray-300 ml-4">Your branch is up to date with 'origin/main'.</div>
+            <br>
+            <div class="text-green-400">$ git pull origin main</div>
+            <div class="text-gray-300 ml-4">From https://github.com/user/repo</div>
+            <div class="text-gray-300 ml-4"> * branch            main       -> FETCH_HEAD</div>
+            <div class="text-gray-300 ml-4">Already up to date.</div>
+            <br>
+            <div class="text-green-400">$ git branch</div>
+            <div class="text-gray-300 ml-4">  bugfix/header</div>
+            <div class="text-gray-300 ml-4">  develop</div>
+            <div class="text-gray-300 ml-4">* <span class="text-green-400">main</span></div>
+            <div class="text-gray-300 ml-4">  feature/login</div>
+            <br>
+            <div class="text-green-400">$</div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- File Info Panel -->
     <div class="mt-8 bg-gray-800 rounded-lg p-6">
       <h2 class="text-lg font-semibold mb-4 flex items-center">
-        <i class="fas fa-info-circle text-blue-400 mr-2"></i> File Information
+        <i class="fas fa-info-circle text-blue-400 mr-2"></i> Repository Information
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-gray-700 p-4 rounded-lg">
-          <h3 class="font-medium text-sm mb-2 text-gray-300">General</h3>
-          <p class="text-xs"><span class="text-gray-400">Name:</span> test.html</p>
-          <p class="text-xs"><span class="text-gray-400">Location:</span> /projects/website/</p>
-          <p class="text-xs"><span class="text-gray-400">Size:</span> 1.2 KB</p>
+          <h3 class="font-medium text-sm mb-2 text-gray-300">Repository</h3>
+          <p class="text-xs"><span class="text-gray-400">Name:</span> professional-editor</p>
+          <p class="text-xs"><span class="text-gray-400">Owner:</span> github-user</p>
+          <p class="text-xs"><span class="text-gray-400">URL:</span> github.com/user/pro-editor</p>
         </div>
         <div class="bg-gray-700 p-4 rounded-lg">
-          <h3 class="font-medium text-sm mb-2 text-gray-300">Timestamps</h3>
-          <p class="text-xs"><span class="text-gray-400">Created:</span> Aug 3, 2025 10:30 AM</p>
-          <p class="text-xs"><span class="text-gray-400">Modified:</span> Aug 3, 2025 2:15 PM</p>
-          <p class="text-xs"><span class="text-gray-400">Last opened:</span> Just now</p>
+          <h3 class="font-medium text-sm mb-2 text-gray-300">Status</h3>
+          <p class="text-xs"><span class="text-gray-400">Changes:</span> 2 modified files</p>
+          <p class="text-xs"><span class="text-gray-400">Last commit:</span> 30 minutes ago</p>
+          <p class="text-xs"><span class="text-gray-400">Last push:</span> 2 hours ago</p>
         </div>
         <div class="bg-gray-700 p-4 rounded-lg">
-          <h3 class="font-medium text-sm mb-2 text-gray-300">Statistics</h3>
-          <p class="text-xs"><span class="text-gray-400">Lines:</span> 20</p>
-          <p class="text-xs"><span class="text-gray-400">Words:</span> 128</p>
-          <p class="text-xs"><span class="text-gray-400">Characters:</span> 856</p>
+          <h3 class="font-medium text-sm mb-2 text-gray-300">Collaboration</h3>
+          <p class="text-xs"><span class="text-gray-400">Collaborators:</span> 3</p>
+          <p class="text-xs"><span class="text-gray-400">Active now:</span> 2</p>
+          <p class="text-xs"><span class="text-gray-400">Permissions:</span> Read/Write</p>
         </div>
       </div>
     </div>
@@ -210,14 +362,14 @@
         </div>
         <div>
           <i class="fas fa-circle text-green-500 mr-2"></i>
-          <span>Connected</span>
+          <span>Connected to GitHub</span>
         </div>
         <div>
           <i class="fas fa-laptop-code text-blue-400 mr-2"></i>
           <span>test.html</span>
         </div>
       </div>
-      <div class="mt-2">Professional Text Editor v1.0</div>
+      <div class="mt-2">GitHub Editor v1.0 - Ready to commit changes</div>
     </div>
   </footer>
 
@@ -246,33 +398,30 @@
       // Update on input
       editor.addEventListener('input', updateLineNumbers);
       
-      // Highlight current line
-      editor.addEventListener('click', highlightCurrentLine);
-      editor.addEventListener('keyup', highlightCurrentLine);
-      
-      function highlightCurrentLine() {
-        // Remove any existing highlights
-        document.querySelectorAll('.line-highlight').forEach(el => {
-          el.classList.remove('line-highlight');
+      // Branch selection
+      const branchItems = document.querySelectorAll('.branch-item');
+      branchItems.forEach(item => {
+        item.addEventListener('click', () => {
+          branchItems.forEach(b => b.classList.remove('branch-active'));
+          item.classList.add('branch-active');
+          document.getElementById('currentBranch').textContent = 
+            item.querySelector('span').textContent;
         });
-        
-        // Get current line
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0);
-          const startNode = range.startContainer;
-          
-          // Traverse up to the line element
-          let lineElement = startNode;
-          while (lineElement && !lineElement.classList?.contains('line')) {
-            lineElement = lineElement.parentNode;
-          }
-          
-          if (lineElement && lineElement.classList.contains('line')) {
-            lineElement.classList.add('line-highlight');
-          }
-        }
-      }
+      });
+      
+      // Git buttons animation
+      const gitButtons = document.querySelectorAll('.git-btn');
+      gitButtons.forEach(btn => {
+        btn.addEventListener('mousedown', () => {
+          btn.style.transform = 'translateY(1px)';
+        });
+        btn.addEventListener('mouseup', () => {
+          btn.style.transform = 'translateY(0)';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'translateY(0)';
+        });
+      });
     });
   </script>
 </body>
