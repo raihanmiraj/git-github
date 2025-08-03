@@ -315,9 +315,12 @@
       const branchListContainer = document.getElementById('branchListContainer');
       const currentBranchElement = document.getElementById('currentBranch');
       
-      // Simulated branches data
-      let branches = ['main', 'develop', 'feature/login'];
+      // Real branches data
+      let branches = [];
       let currentBranch = 'main';
+      
+      // API base URL
+      const API_BASE = 'https://github.raihanmiraj.com/api.php';
       
       // Update branch display
       function updateBranchDisplay() {
@@ -337,7 +340,7 @@
         });
         currentBranchElement.textContent = currentBranch;
         
-        // Update branch selector
+        // Update branch selectors
         document.querySelectorAll('#switchBranch, #branchToDelete').forEach(select => {
           const currentValue = select.value;
           select.innerHTML = `
@@ -378,80 +381,51 @@
         });
       });
       
-      // Simulate API call
-      function callGitAction(action, data = {}) {
-        return new Promise((resolve) => {
+      // Real API call function
+      async function callGitAction(action, data = {}) {
+        try {
           // Show loading in terminal
           addTerminalOutput(`Executing git ${action}...`, 'command');
           
-          // Simulate API delay
-          setTimeout(() => {
-            let response = { output: '', error: null };
-            
-            switch(action) {
-              case 'pull':
-                response.output = `From https://github.com/user/repo
- * branch            main       -> FETCH_HEAD
-Already up to date.`;
-                break;
-              case 'push':
-                response.output = `Counting objects: 3, done.
-Delta compression using up to 8 threads.
-Compressing objects: 100% (3/3), done.
-Writing objects: 100% (3/3), 312 bytes | 312.00 KiB/s, done.
-Total 3 (delta 2), reused 0 (delta 0)
-To https://github.com/user/repo.git
-   2d4b5a8..f1e2d3c  main -> main`;
-                break;
-              case 'branch-create':
-                if (!data.name) {
-                  response.error = "Branch name cannot be empty";
-                } else if (branches.includes(data.name)) {
-                  response.error = `Branch '${data.name}' already exists`;
-                } else {
-                  branches.push(data.name);
-                  response.output = `Switched to a new branch '${data.name}'`;
-                  updateBranchDisplay();
-                }
-                break;
-              case 'branch-switch':
-                if (!data.name) {
-                  response.error = "Please select a branch to switch to";
-                } else if (!branches.includes(data.name)) {
-                  response.error = `Branch '${data.name}' does not exist`;
-                } else {
-                  currentBranch = data.name;
-                  response.output = `Switched to branch '${data.name}'`;
-                  updateBranchDisplay();
-                }
-                break;
-              case 'branch-delete':
-                if (!data.name) {
-                  response.error = "Please select a branch to delete";
-                } else if (data.name === currentBranch) {
-                  response.error = `Cannot delete the currently active branch '${data.name}'`;
-                } else if (!branches.includes(data.name)) {
-                  response.error = `Branch '${data.name}' does not exist`;
-                } else {
-                  branches = branches.filter(b => b !== data.name);
-                  response.output = `Deleted branch '${data.name}'`;
-                  updateBranchDisplay();
-                }
-                break;
-            }
-            
-            // Display output in terminal
-            if (response.error) {
-              addTerminalOutput(`Error: ${response.error}`, 'error');
-            } else if (response.output) {
-              response.output.split('\n').forEach(line => {
+          let url = `${API_BASE}?action=${action}`;
+          
+          // Add parameters for branch operations
+          if (data.name) {
+            url += `&name=${encodeURIComponent(data.name)}`;
+          }
+          
+          const response = await fetch(url);
+          const result = await response.json();
+          
+          // Display output in terminal
+          if (result.error) {
+            addTerminalOutput(`Error: ${result.error}`, 'error');
+          } else if (result.output) {
+            result.output.split('\n').forEach(line => {
+              if (line.trim()) {
                 addTerminalOutput(line, 'success');
-              });
-            }
-            
-            resolve(response);
-          }, 1000);
-        });
+              }
+            });
+          }
+          
+          // Handle branch list updates
+          if (action === 'branch-list' && result.branches) {
+            branches = result.branches;
+            updateBranchDisplay();
+          }
+          
+          return result;
+        } catch (error) {
+          console.error('API Error:', error);
+          addTerminalOutput(`Error: Failed to execute ${action}`, 'error');
+          return { error: 'Network error' };
+        }
+      }
+      
+      // Load branches on page load
+      async function loadBranches() {
+        addTerminalOutput('Loading branches...', 'command');
+        await callGitAction('branch-list');
       }
       
       // Button event handlers
@@ -463,32 +437,44 @@ To https://github.com/user/repo.git
         callGitAction('push');
       });
       
-      document.getElementById('branchCreateForm').addEventListener('submit', (e) => {
+      document.getElementById('branchCreateForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const branchName = document.getElementById('newBranch').value.trim();
         if (branchName) {
-          callGitAction('branch-create', { name: branchName });
-          document.getElementById('newBranch').value = '';
+          const result = await callGitAction('branch-create', { name: branchName });
+          if (!result.error) {
+            document.getElementById('newBranch').value = '';
+            // Reload branches after creating
+            await callGitAction('branch-list');
+          }
         }
       });
       
-      document.getElementById('branchSwitchForm').addEventListener('submit', (e) => {
+      document.getElementById('branchSwitchForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const branchName = document.getElementById('switchBranch').value;
         if (branchName) {
-          callGitAction('branch-switch', { name: branchName });
+          const result = await callGitAction('branch-switch', { name: branchName });
+          if (!result.error) {
+            currentBranch = branchName;
+            updateBranchDisplay();
+          }
         }
       });
       
-      document.getElementById('deleteBranchBtn').addEventListener('click', () => {
+      document.getElementById('deleteBranchBtn').addEventListener('click', async () => {
         const branchName = document.getElementById('branchToDelete').value;
         if (branchName && confirm(`Are you sure you want to delete branch "${branchName}"?`)) {
-          callGitAction('branch-delete', { name: branchName });
+          const result = await callGitAction('branch-delete', { name: branchName });
+          if (!result.error) {
+            // Reload branches after deleting
+            await callGitAction('branch-list');
+          }
         }
       });
       
-      // Initialize branch display
-      updateBranchDisplay();
+      // Initialize by loading branches
+      loadBranches();
     });
   </script>
 </body>

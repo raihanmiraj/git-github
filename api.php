@@ -1,4 +1,15 @@
 <?php
+
+header("Access-Control-Allow-Origin: *"); // You can replace * with your frontend domain for security
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// Handle preflight requests (OPTIONS method)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
+
 $request = $_GET['action'] ?? '';
 
 switch ($request) {
