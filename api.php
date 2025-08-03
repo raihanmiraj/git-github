@@ -31,6 +31,10 @@ switch ($request) {
     case 'branch-list':
         require 'api/branch-list.php';
         break;
+    case 'branch-active':
+        require 'api/branch-active.php';
+        break;
+
 
     default:
         echo json_encode(['error' => 'Invalid Action']);
