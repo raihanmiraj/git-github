@@ -1,4 +1,4 @@
-# GitHub Web Editor
+# GitHub Junks
 
 ![GitHub Web Editor Screenshot](/image/sample.png)
 
@@ -67,10 +67,10 @@ A web-based interface that provides GitHub-like functionality including push, pu
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/github-web-editor.git
+git clone https://github.com/raihanmiraj/git-github.git
 
 # Set permissions
-chmod -R 755 github-web-editor
+chmod -R 755 git-github
 
 # Access in browser
 https://github.raihanmiraj.com
