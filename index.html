@@ -1,185 +1,278 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GitHub Deploy Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Text Editor - test.html</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            editor: {
+              dark: '#1e1e1e',
+              light: '#2d2d2d',
+              accent: '#3a3a3a',
+              highlight: '#333333'
+            }
+          },
+          fontFamily: {
+            mono: ['Fira Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .editor-container {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .editor-toolbar button:not(:last-child) {
+      margin-right: 8px;
+    }
+    .editor-content {
+      min-height: 400px;
+      max-height: 70vh;
+      overflow: auto;
+    }
+    .line-numbers {
+      user-select: none;
+      text-align: right;
+    }
+    .code-editor {
+      tab-size: 4;
+      caret-color: #d4d4d4;
+    }
+    .code-editor:focus {
+      outline: none;
+    }
+    .tag { color: #569CD6; }
+    .attribute { color: #9CDCFE; }
+    .value { color: #CE9178; }
+    .comment { color: #6A9955; }
+    .keyword { color: #C586C0; }
+    .symbol { color: #d4d4d4; }
+    .text { color: #d4d4d4; }
+    .line-highlight {
+      background-color: rgba(97, 97, 97, 0.2);
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <div class="container mx-auto py-10">
-    <div class="bg-white shadow-lg rounded-lg p-8">
-      <h1 class="text-3xl font-bold mb-6 text-center">GitHub Deploy Dashboard</h1>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Pull Button -->
-        <button id="pullBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg">
-          Pull Latest Code
+<body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="bg-gray-800 border-b border-gray-700">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center">
+        <i class="fas fa-file-code text-blue-400 text-xl mr-3"></i>
+        <h1 class="text-xl font-semibold">test.html</h1>
+        <span class="ml-4 text-sm px-2 py-1 bg-gray-700 rounded text-gray-300">HTML</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-md text-sm font-medium transition-colors">
+          <i class="fas fa-play mr-2"></i>Preview
         </button>
-
-        <!-- Push Button -->
-        <button id="pushBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg">
-          Push Changes
-        </button>
-
-        <!-- Create Branch Form -->
-        <div class="col-span-1 md:col-span-2">
-          <form id="branchCreateForm" class="flex gap-4">
-            <input
-              type="text"
-              id="newBranch"
-              placeholder="New Branch Name"
-              class="flex-1 border rounded-lg px-4 py-2"
-              required
-            />
-            <button
-              type="submit"
-              class="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg"
-            >
-              Create Branch
-            </button>
-          </form>
+        <div class="relative">
+          <button class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
+            <i class="fas fa-save mr-2"></i>Save
+          </button>
+          <span class="absolute -top-2 -right-2 bg-gray-700 text-xs px-1.5 py-0.5 rounded-full">⌘S</span>
         </div>
+      </div>
+    </div>
+  </header>
 
-        <!-- Switch Branch Form -->
-        <div class="col-span-1 md:col-span-2">
-          <form id="branchSwitchForm" class="flex gap-4">
-            <input
-              type="text"
-              id="switchBranch"
-              placeholder="Switch to Branch"
-              class="flex-1 border rounded-lg px-4 py-2"
-              required
-            />
-            <button
-              type="submit"
-              class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-lg"
-            >
-              Switch Branch
-            </button>
-          </form>
-        </div>
-
-        <!-- Branch List Dropdown + Delete Button -->
-        <div class="col-span-1 md:col-span-2 flex items-center gap-4 mt-4">
-          <select id="branchList" class="flex-1 border rounded-lg px-4 py-2">
-            <option>Loading branches...</option>
-          </select>
-          <button
-            id="deleteBranchBtn"
-            class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-lg"
-          >
-            Delete Branch
+  <!-- Main Content -->
+  <main class="flex-1 container mx-auto px-4 py-8">
+    <div class="editor-container bg-editor-dark rounded-lg overflow-hidden">
+      <!-- Editor Toolbar -->
+      <div class="editor-toolbar bg-editor-light px-4 py-2.5 border-b border-editor-accent">
+        <div class="flex flex-wrap">
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-bold mr-1"></i>Bold
+          </button>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-italic mr-1"></i>Italic
+          </button>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-link mr-1"></i>Link
+          </button>
+          <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-code mr-1"></i>Code
+          </button>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-list-ul mr-1"></i>List
+          </button>
+          <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-undo mr-1"></i>Undo
+          </button>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-redo mr-1"></i>Redo
+          </button>
+          <div class="border-r border-gray-600 mx-3 h-6 my-auto"></div>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-search mr-1"></i>Find
+          </button>
+          <button class="px-3 py-1.5 bg-editor-accent hover:bg-editor-highlight rounded text-xs">
+            <i class="fas fa-exchange-alt mr-1"></i>Replace
           </button>
         </div>
       </div>
 
-      <!-- Output Console -->
-      <div class="mt-8">
-        <h2 class="text-xl font-semibold mb-2">Command Output</h2>
-        <div
-          id="output"
-          class="bg-gray-900 text-green-400 text-sm p-4 rounded-lg h-64 overflow-y-auto whitespace-pre-wrap"
-        >
-          Waiting for actions...
+      <!-- Editor Content -->
+      <div class="editor-content flex font-mono text-sm">
+        <!-- Line Numbers -->
+        <div class="line-numbers bg-editor-light text-gray-500 py-4 px-3 select-none">
+          <pre>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20</pre>
+        </div>
+        
+        <!-- Code Editor -->
+        <div class="flex-1 py-4 px-4">
+          <pre class="m-0"><code class="code-editor block w-full min-h-full focus:outline-none" contenteditable="true" spellcheck="false">&lt;!DOCTYPE <span class="tag">html</span>&gt;
+&lt;<span class="tag">html</span> <span class="attribute">lang</span>=<span class="value">"en"</span>&gt;
+&lt;<span class="tag">head</span>&gt;
+  &lt;<span class="tag">meta</span> <span class="attribute">charset</span>=<span class="value">"UTF-8"</span> /&gt;
+  &lt;<span class="tag">meta</span> <span class="attribute">name</span>=<span class="value">"viewport"</span> <span class="attribute">content</span>=<span class="value">"width=device-width, initial-scale=1"</span> /&gt;
+  &lt;<span class="tag">title</span>&gt;Professional Text Editor&lt;/<span class="tag">title</span>&gt;
+  &lt;<span class="tag">link</span> <span class="attribute">rel</span>=<span class="value">"stylesheet"</span> <span class="attribute">href</span>=<span class="value">"styles.css"</span> /&gt;
+&lt;/<span class="tag">head</span>&gt;
+&lt;<span class="tag">body</span> <span class="attribute">class</span>=<span class="value">"bg-gray-100"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attribute">class</span>=<span class="value">"container mx-auto py-8"</span>&gt;
+    &lt;<span class="tag">h1</span> <span class="attribute">class</span>=<span class="value">"text-3xl font-bold mb-6"</span>&gt;Welcome to the Editor&lt;/<span class="tag">h1</span>&gt;
+    &lt;<span class="tag">p</span>&gt;This is a professionally designed text editor for your HTML files.&lt;/<span class="tag">p</span>&gt;
+    
+    &lt;<span class="tag">div</span> <span class="attribute">class</span>=<span class="value">"mt-8 p-6 bg-white rounded-lg shadow"</span>&gt;
+      &lt;<span class="tag">h2</span> <span class="attribute">class</span>=<span class="value">"text-xl font-semibold mb-4"</span>&gt;Features&lt;/<span class="tag">h2</span>&gt;
+      &lt;<span class="tag">ul</span> <span class="attribute">class</span>=<span class="value">"list-disc pl-6"</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Syntax highlighting for HTML&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Line numbers&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Responsive design&lt;/<span class="tag">li</span>&gt;
+        &lt;<span class="tag">li</span>&gt;Professional UI&lt;/<span class="tag">li</span>&gt;
+      &lt;/<span class="tag">ul</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">body</span>&gt;
+&lt;/<span class="tag">html</span>&gt;</code></pre>
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- Status Bar -->
+    <div class="mt-4 flex justify-between text-xs text-gray-500">
+      <div>
+        <span class="mr-4">Lines: 20</span>
+        <span>Column: 12</span>
+      </div>
+      <div>
+        <span class="mr-4">UTF-8</span>
+        <span>HTML</span>
+      </div>
+    </div>
+
+    <!-- File Info Panel -->
+    <div class="mt-8 bg-gray-800 rounded-lg p-6">
+      <h2 class="text-lg font-semibold mb-4 flex items-center">
+        <i class="fas fa-info-circle text-blue-400 mr-2"></i> File Information
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gray-700 p-4 rounded-lg">
+          <h3 class="font-medium text-sm mb-2 text-gray-300">General</h3>
+          <p class="text-xs"><span class="text-gray-400">Name:</span> test.html</p>
+          <p class="text-xs"><span class="text-gray-400">Location:</span> /projects/website/</p>
+          <p class="text-xs"><span class="text-gray-400">Size:</span> 1.2 KB</p>
+        </div>
+        <div class="bg-gray-700 p-4 rounded-lg">
+          <h3 class="font-medium text-sm mb-2 text-gray-300">Timestamps</h3>
+          <p class="text-xs"><span class="text-gray-400">Created:</span> Aug 3, 2025 10:30 AM</p>
+          <p class="text-xs"><span class="text-gray-400">Modified:</span> Aug 3, 2025 2:15 PM</p>
+          <p class="text-xs"><span class="text-gray-400">Last opened:</span> Just now</p>
+        </div>
+        <div class="bg-gray-700 p-4 rounded-lg">
+          <h3 class="font-medium text-sm mb-2 text-gray-300">Statistics</h3>
+          <p class="text-xs"><span class="text-gray-400">Lines:</span> 20</p>
+          <p class="text-xs"><span class="text-gray-400">Words:</span> 128</p>
+          <p class="text-xs"><span class="text-gray-400">Characters:</span> 856</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 border-t border-gray-700 py-4">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+      <div class="flex justify-center space-x-6">
+        <div>
+          <i class="fas fa-code-branch text-green-400 mr-2"></i>
+          <span>main</span>
+        </div>
+        <div>
+          <i class="fas fa-circle text-green-500 mr-2"></i>
+          <span>Connected</span>
+        </div>
+        <div>
+          <i class="fas fa-laptop-code text-blue-400 mr-2"></i>
+          <span>test.html</span>
+        </div>
+      </div>
+      <div class="mt-2">Professional Text Editor v1.0</div>
+    </div>
+  </footer>
 
   <script>
-    const outputDiv = document.getElementById('output');
-    const branchList = document.getElementById('branchList');
-    const deleteBranchBtn = document.getElementById('deleteBranchBtn');
-
-    function updateOutput(data) {
-      outputDiv.textContent = data.output || data.error || 'No response';
-    }
-
-    // Fetch branches and populate dropdown
-    function fetchBranches() {
-      fetch('api.php?action=branch-list')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            outputDiv.textContent = data.error;
-            branchList.innerHTML = '<option>Error loading branches</option>';
-            return;
+    // Basic editor functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const editor = document.querySelector('.code-editor');
+      const lineNumbers = document.querySelector('.line-numbers pre');
+      
+      // Focus the editor on load
+      editor.focus();
+      
+      // Update line numbers based on content
+      function updateLineNumbers() {
+        const lines = editor.textContent.split('\n').length;
+        let numbers = '';
+        for (let i = 1; i <= lines; i++) {
+          numbers += i + '<br>';
+        }
+        lineNumbers.innerHTML = numbers;
+      }
+      
+      // Initial update
+      updateLineNumbers();
+      
+      // Update on input
+      editor.addEventListener('input', updateLineNumbers);
+      
+      // Highlight current line
+      editor.addEventListener('click', highlightCurrentLine);
+      editor.addEventListener('keyup', highlightCurrentLine);
+      
+      function highlightCurrentLine() {
+        // Remove any existing highlights
+        document.querySelectorAll('.line-highlight').forEach(el => {
+          el.classList.remove('line-highlight');
+        });
+        
+        // Get current line
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          const startNode = range.startContainer;
+          
+          // Traverse up to the line element
+          let lineElement = startNode;
+          while (lineElement && !lineElement.classList?.contains('line')) {
+            lineElement = lineElement.parentNode;
           }
-          branchList.innerHTML = data.branches
-            .map((branch) => `<option value="${branch}">${branch}</option>`)
-            .join('');
-        })
-        .catch((err) => {
-          outputDiv.textContent = 'Failed to fetch branches: ' + err.message;
-          branchList.innerHTML = '<option>Error loading branches</option>';
-        });
-    }
-
-    // Initial fetch of branches
-    fetchBranches();
-
-    // Pull Button Handler
-    document.getElementById('pullBtn').addEventListener('click', () => {
-      fetch('api.php?action=pull')
-        .then((res) => res.json())
-        .then(updateOutput);
-    });
-
-    // Push Button Handler
-    document.getElementById('pushBtn').addEventListener('click', () => {
-      fetch('api.php?action=push')
-        .then((res) => res.json())
-        .then(updateOutput);
-    });
-
-    // Create Branch Form Handler
-    document.getElementById('branchCreateForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const branchName = document.getElementById('newBranch').value.trim();
-      if (!branchName) return;
-      fetch(`api.php?action=branch-create&name=${encodeURIComponent(branchName)}`)
-        .then((res) => res.json())
-        .then(updateOutput)
-        .finally(() => {
-          document.getElementById('newBranch').value = '';
-          fetchBranches();
-        });
-    });
-
-    // Switch Branch Form Handler
-    document.getElementById('branchSwitchForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const branchName = document.getElementById('switchBranch').value.trim();
-      if (!branchName) return;
-      fetch(`api.php?action=branch-switch&name=${encodeURIComponent(branchName)}`)
-        .then((res) => res.json())
-        .then(updateOutput)
-        .finally(() => {
-          document.getElementById('switchBranch').value = '';
-          fetchBranches();
-        });
-    });
-
-    // Delete Branch Button Handler
-    deleteBranchBtn.addEventListener('click', () => {
-      const branch = branchList.value;
-      if (!branch) {
-        outputDiv.textContent = 'Please select a branch to delete.';
-        return;
+          
+          if (lineElement && lineElement.classList.contains('line')) {
+            lineElement.classList.add('line-highlight');
+          }
+        }
       }
-      if (!confirm(`Are you sure you want to delete branch "${branch}"? This cannot be undone.`)) {
-        return;
-      }
-      fetch(`api.php?action=branch-delete&name=${encodeURIComponent(branch)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          outputDiv.textContent = data.output || data.error || 'No response';
-          fetchBranches();
-        })
-        .catch((err) => {
-          outputDiv.textContent = 'Error deleting branch: ' + err.message;
-        });
     });
   </script>
 </body>
