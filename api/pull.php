@@ -1,6 +1,7 @@
 <?php
-require 'execute.php';
-chdir(__DIR__ . '/../repo');
-$output = git_exec('git pull');
-echo json_encode(['output' => $output]);
+function git_exec($command) {
+    putenv('GIT_SSH_COMMAND=ssh -i ' . __DIR__ . '/../.ssh/gitgithub -o IdentitiesOnly=yes');
+    $output = shell_exec($command . ' 2>&1');
+    return $output;
+}
 ?>
