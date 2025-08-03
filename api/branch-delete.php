@@ -68,7 +68,19 @@ if (in_array($branch, $localBranches)) {
     $results['local'] = "Branch '$branch' does not exist locally.";
 }
 
+// Convert results array to string with newlines
+$outputString = '';
+if (isset($results['checkout'])) {
+    $outputString .= "Checkout: " . $results['checkout'] . "\n";
+}
+if (isset($results['local'])) {
+    $outputString .= "Local: " . $results['local'] . "\n";
+}
+if (isset($results['remote'])) {
+    $outputString .= "Remote: " . $results['remote'] . "\n";
+}
+
 echo json_encode([
     'status' => 'success',
-    'output' => $results
+    'output' => $outputString
 ]);
