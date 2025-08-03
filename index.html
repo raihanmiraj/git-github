@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +23,9 @@
               blue: '#0366d6',
               red: '#d73a49',
               yellow: '#ffd33d'
+            },
+            file: {
+              history: '#2c5282'
             }
           },
           fontFamily: {
@@ -37,89 +39,50 @@
     .editor-container {
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
-
     .editor-content {
       min-height: 400px;
       max-height: 60vh;
       overflow: auto;
     }
-
     .line-numbers {
       user-select: none;
       text-align: right;
     }
-
     .code-editor {
       tab-size: 4;
       caret-color: #d4d4d4;
     }
-
     .code-editor:focus {
       outline: none;
     }
-
-    .tag {
-      color: #569CD6;
-    }
-
-    .attribute {
-      color: #9CDCFE;
-    }
-
-    .value {
-      color: #CE9178;
-    }
-
-    .comment {
-      color: #6A9955;
-    }
-
-    .keyword {
-      color: #C586C0;
-    }
-
-    .symbol {
-      color: #d4d4d4;
-    }
-
-    .text {
-      color: #d4d4d4;
-    }
-
+    .tag { color: #569CD6; }
+    .attribute { color: #9CDCFE; }
+    .value { color: #CE9178; }
+    .comment { color: #6A9955; }
+    .keyword { color: #C586C0; }
+    .symbol { color: #d4d4d4; }
+    .text { color: #d4d4d4; }
     .terminal {
       background-color: #1e1e1e;
       border-top: 2px solid #6f42c1;
     }
-
     .git-btn {
       transition: all 0.2s ease;
     }
-
     .git-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-
     .branch-active {
       box-shadow: 0 0 0 2px #6f42c1;
     }
-
     .output-line {
       animation: fadeIn 0.3s ease-out;
     }
-
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(5px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
     .blink-cursor:after {
       content: "";
       display: inline-block;
@@ -130,39 +93,32 @@
       animation: blink 1s infinite;
       vertical-align: middle;
     }
-
     @keyframes blink {
-      0% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0;
-      }
-
-      100% {
-        opacity: 1;
-      }
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
     }
-
     .loading {
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 3px solid rgba(255, 255, 255, .3);
+      border: 3px solid rgba(255,255,255,.3);
       border-radius: 50%;
       border-top-color: #fff;
       animation: spin 1s ease-in-out infinite;
     }
-
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
+    }
+    .file-history-item:hover {
+      background-color: #2d3748;
+      transform: translateY(-2px);
+    }
+    .file-history-item {
+      transition: all 0.2s ease;
     }
   </style>
 </head>
-
 <body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col">
   <!-- Header -->
   <header class="bg-gray-800 border-b border-gray-700">
@@ -172,14 +128,22 @@
         <i class="fas fa-file-code text-blue-400 text-xl mr-3"></i>
         <h1 class="text-xl font-semibold">test.html</h1>
         <span class="ml-4 text-sm px-2 py-1 bg-gray-700 rounded text-gray-300">HTML</span>
+        
+        <!-- Auto-save toggle -->
+        <div class="ml-6 flex items-center">
+          <span class="text-sm mr-2">Auto-save:</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="autoSaveToggle" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+          </label>
+        </div>
       </div>
       <div class="flex items-center space-x-3">
         <div class="flex items-center bg-gray-700 px-3 py-1 rounded-md">
           <i class="fas fa-code-branch text-purple-400 mr-2"></i>
           <span id="currentBranch" class="font-mono">main</span>
         </div>
-        <button id="saveBtn"
-          class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
+        <button id="saveBtn" class="px-4 py-1.5 bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition-colors">
           <i class="fas fa-save mr-2"></i>Save
         </button>
       </div>
@@ -196,49 +160,31 @@
           <div class="editor-content flex font-mono text-sm">
             <!-- Line Numbers -->
             <div class="line-numbers bg-editor-light text-gray-500 py-4 px-3 select-none">
-              <pre>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20</pre>
+              <pre id="lineNumbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</pre>
             </div>
-
+            
             <!-- Code Editor -->
             <div class="flex-1 py-4 px-4">
-              <pre class="m-0"><code class="code-editor block w-full min-h-full focus:outline-none" contenteditable="true" spellcheck="false">&lt;!DOCTYPE <span class="tag">html</span>&gt;
-&lt;<span class="tag">html</span> <span class="attribute">lang</span>=<span class="value">"en"</span>&gt;
-&lt;<span class="tag">head</span>&gt;
-  &lt;<span class="tag">meta</span> <span class="attribute">charset</span>=<span class="value">"UTF-8"</span> /&gt;
-  &lt;<span class="tag">meta</span> <span class="attribute">name</span>=<span class="value">"viewport"</span> <span class="attribute">content</span>=<span class="value">"width=device-width, initial-scale=1"</span> /&gt;
-  &lt;<span class="tag">title</span>&gt;GitHub Editor&lt;/<span class="tag">title</span>&gt;
-  &lt;<span class="tag">link</span> <span class="attribute">rel</span>=<span class="value">"stylesheet"</span> <span class="attribute">href</span>=<span class="value">"styles.css"</span> /&gt;
-&lt;/<span class="tag">head</span>&gt;
-&lt;<span class="tag">body</span> <span class="attribute">class</span>=<span class="value">"bg-gray-100"</span>&gt;
-  &lt;<span class="tag">div</span> <span class="attribute">class</span>=<span class="value">"container mx-auto py-8"</span>&gt;
-    &lt;<span class="tag">h1</span> <span class="attribute">class</span>=<span class="value">"text-3xl font-bold mb-6"</span>&gt;GitHub Editor&lt;/<span class="tag">h1</span>&gt;
-    &lt;<span class="tag">p</span>&gt;Edit and manage your code with integrated GitHub controls.&lt;/<span class="tag">p</span>&gt;
-    
-    &lt;<span class="tag">div</span> <span class="attribute">class</span>=<span class="value">"mt-8 p-6 bg-white rounded-lg shadow"</span>&gt;
-      &lt;<span class="tag">h2</span> <span class="attribute">class</span>=<span class="value">"text-xl font-semibold mb-4"</span>&gt;Features&lt;/<span class="tag">h2</span>&gt;
-      &lt;<span class="tag">ul</span> <span class="attribute">class</span>=<span class="value">"list-disc pl-6"</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Branch management&lt;/<span class="tag">li</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Push and pull functionality&lt;/<span class="tag">li</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Integrated terminal&lt;/<span class="tag">li</span>&gt;
-        &lt;<span class="tag">li</span>&gt;Real-time collaboration&lt;/<span class="tag">li</span>&gt;
-      &lt;/<span class="tag">ul</span>&gt;
-    &lt;/<span class="tag">div</span>&gt;
-  &lt;/<span class="tag">div</span>&gt;
-&lt;/<span class="tag">body</span>&gt;
-&lt;/<span class="tag">html</span>&gt;</code></pre>
+              <pre class="m-0"><code id="codeEditor" class="code-editor block w-full min-h-full focus:outline-none" contenteditable="true" spellcheck="false">Loading test.html content...</code></pre>
             </div>
           </div>
         </div>
 
-        <!-- Status Bar -->
-        <div class="mt-4 flex justify-between text-xs text-gray-500">
-          <div>
-            <span class="mr-4">Lines: 20</span>
-            <span>Column: 12</span>
+        <!-- File History -->
+        <div class="mt-6 bg-gray-800 rounded-lg overflow-hidden">
+          <div class="flex justify-between items-center px-5 py-3 border-b border-gray-700">
+            <h2 class="text-lg font-semibold flex items-center">
+              <i class="fas fa-history text-blue-400 mr-2"></i> File History
+            </h2>
+            <div>
+              <span id="fileSize" class="text-sm bg-gray-700 px-2 py-1 rounded">Loading...</span>
+            </div>
           </div>
-          <div>
-            <span class="mr-4">UTF-8</span>
-            <span>HTML</span>
+          <div id="fileHistory" class="max-h-40 overflow-y-auto p-4">
+            <div class="text-center py-4">
+              <div class="loading mx-auto"></div>
+              <p class="mt-2 text-sm">Loading file history...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -250,14 +196,12 @@
           <h2 class="text-lg font-semibold mb-4 flex items-center">
             <i class="fab fa-github text-purple-400 mr-2"></i> Repository Actions
           </h2>
-
+          
           <div class="grid grid-cols-2 gap-3">
-            <button id="pullBtn"
-              class="git-btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
+            <button id="pullBtn" class="git-btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center">
               <i class="fas fa-download mr-2"></i> Pull
             </button>
-            <button id="pushBtn"
-              class="git-btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
+            <button id="pushBtn" class="git-btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center">
               <i class="fas fa-upload mr-2"></i> Push
             </button>
           </div>
@@ -268,51 +212,47 @@
           <h2 class="text-lg font-semibold mb-4 flex items-center">
             <i class="fas fa-code-branch text-yellow-400 mr-2"></i> Branch Management
           </h2>
-
+          
           <!-- Branch List -->
           <div class="mb-4">
             <h3 class="text-sm font-medium mb-2 text-gray-400">Current Branches</h3>
             <div id="branchListContainer" class="max-h-40 overflow-y-auto">
-              <div class="branch-item bg-gray-700 p-3 rounded mb-2 flex justify-between items-center branch-active">
-                <div>
-                  <i class="fas fa-code-branch text-purple-400 mr-2"></i>
-                  <span>main</span>
-                </div>
-                <span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>
+              <div class="text-center py-4">
+                <div class="loading mx-auto"></div>
+                <p class="mt-2 text-sm">Loading branches...</p>
               </div>
             </div>
           </div>
-
+          
           <!-- Branch Actions -->
           <div class="space-y-3">
             <form id="branchCreateForm" class="flex space-x-3">
-              <input type="text" id="newBranch" placeholder="New branch name"
+              <input 
+                type="text" 
+                id="newBranch"
+                placeholder="New branch name" 
                 class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
-                required>
-              <button type="submit"
-                class="git-btn bg-purple-600 hover:bg-purple-700 text-white px-4 rounded flex items-center">
+                required
+              >
+              <button type="submit" class="git-btn bg-purple-600 hover:bg-purple-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-plus mr-1"></i> Create
               </button>
             </form>
-
+            
             <form id="branchSwitchForm" class="flex space-x-3">
-              <select id="switchBranch"
-                class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
+              <select id="switchBranch" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500">
                 <option value="">Select branch to switch</option>
               </select>
-              <button type="submit"
-                class="git-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 rounded flex items-center">
+              <button type="submit" class="git-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 rounded flex items-center">
                 <i class="fas fa-exchange-alt mr-1"></i> Switch
               </button>
             </form>
-
+            
             <div class="flex space-x-3">
-              <select id="branchToDelete"
-                class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+              <select id="branchToDelete" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
                 <option value="">Select branch to delete</option>
               </select>
-              <button id="deleteBranchBtn"
-                class="git-btn bg-red-600 hover:bg-red-700 text-white px-4 rounded flex items-center">
+              <button id="deleteBranchBtn" class="git-btn bg-red-600 hover:bg-red-700 text-white px-4 rounded flex items-center">
                 <i class="fas fa-trash-alt mr-1"></i> Delete
               </button>
             </div>
@@ -371,24 +311,185 @@
       const footerBranch = document.getElementById('footerBranch');
       const switchBranchSelect = document.getElementById('switchBranch');
       const deleteBranchSelect = document.getElementById('branchToDelete');
-
+      const codeEditor = document.getElementById('codeEditor');
+      const lineNumbers = document.getElementById('lineNumbers');
+      const fileHistory = document.getElementById('fileHistory');
+      const fileSize = document.getElementById('fileSize');
+      const saveBtn = document.getElementById('saveBtn');
+      const autoSaveToggle = document.getElementById('autoSaveToggle');
+      
       // State
       let currentBranch = 'main';
       let branches = [];
-
+      let saveTimeout = null;
+      let lastSavedContent = '';
+      let fileHistoryData = [];
+      
+      // Initialize the editor
+      async function initialize() {
+        // Load file content
+        await loadFileContent();
+        
+        // Fetch branches on load
+        const branchData = await callGitAPI('branch-list');
+        
+        if (branchData.branches && branchData.branches.length > 0) {
+          branches = branchData.branches;
+          currentBranch = branches.includes('main') ? 'main' : branches[0];
+          updateBranchDisplay();
+        }
+        
+        // Setup auto-save
+        setupAutoSave();
+        
+        // Update line numbers on input
+        codeEditor.addEventListener('input', updateLineNumbers);
+      }
+      
+      // Load file content from API
+      async function loadFileContent() {
+        try {
+          addTerminalOutput('Loading test.html content...', 'command');
+          
+          const response = await fetch('https://github.raihanmiraj.com/code/api.php');
+          const data = await response.json();
+          
+          if (data.success && data.content) {
+            // Set editor content
+            // Escape HTML content to display as code
+            const escapedContent = data.content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            codeEditor.innerHTML = `<pre>${escapedContent}</pre>`;
+            lastSavedContent = data.content;
+            
+            // Format file size
+            const sizeKB = (data.file_size / 1024).toFixed(2);
+            fileSize.textContent = `${sizeKB} KB`;
+            
+            // Add to file history
+            fileHistoryData = [{
+              timestamp: data.timestamp,
+              size: data.file_size
+            }];
+            renderFileHistory();
+            
+            addTerminalOutput('File content loaded successfully', 'success');
+            updateLineNumbers();
+          } else {
+            addTerminalOutput(`Error: ${data.error || 'Failed to load file'}`, 'error');
+          }
+        } catch (error) {
+          addTerminalOutput(`Network error: ${error.message}`, 'error');
+        }
+      }
+      
+      // Save file content to API
+      async function saveFileContent() {
+        const content = codeEditor.innerHTML;
+        
+        if (content === lastSavedContent) {
+          addTerminalOutput('No changes to save', 'info');
+          return;
+        }
+        
+        try {
+          addTerminalOutput('Saving test.html...', 'command');
+          
+          const response = await fetch('https://github.raihanmiraj.com/code/api.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            lastSavedContent = content;
+            const sizeKB = (data.file_size / 1024).toFixed(2);
+            fileSize.textContent = `${sizeKB} KB`;
+            
+            // Add to file history
+            fileHistoryData.unshift({
+              timestamp: data.timestamp,
+              size: data.file_size
+            });
+            renderFileHistory();
+            
+            addTerminalOutput('File saved successfully', 'success');
+          } else {
+            addTerminalOutput(`Error: ${data.error || 'Failed to save file'}`, 'error');
+          }
+        } catch (error) {
+          addTerminalOutput(`Network error: ${error.message}`, 'error');
+        }
+      }
+      
+      // Render file history
+      function renderFileHistory() {
+        fileHistory.innerHTML = '';
+        
+        if (fileHistoryData.length === 0) {
+          fileHistory.innerHTML = '<p class="text-gray-400 text-center py-4">No history available</p>';
+          return;
+        }
+        
+        fileHistoryData.slice(0, 3).forEach(item => {
+          const sizeKB = (item.size / 1024).toFixed(2);
+          const historyItem = document.createElement('div');
+          historyItem.className = 'file-history-item bg-gray-700 p-3 rounded mb-2';
+          historyItem.innerHTML = `
+            <div class="flex justify-between">
+              <span class="text-sm text-blue-300">
+                <i class="fas fa-clock mr-2"></i>${item.timestamp}
+              </span>
+              <span class="text-sm">${sizeKB} KB</span>
+            </div>
+          `;
+          fileHistory.appendChild(historyItem);
+        });
+      }
+      
+      // Update line numbers
+      function updateLineNumbers() {
+        const lines = codeEditor.textContent.split('\n').length;
+        let numbers = '';
+        for (let i = 1; i <= lines; i++) {
+          numbers += i + '<br>';
+        }
+        lineNumbers.innerHTML = numbers;
+      }
+      
+      // Setup auto-save
+      function setupAutoSave() {
+        codeEditor.addEventListener('input', () => {
+          if (autoSaveToggle.checked) {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+              saveFileContent();
+            }, 3000);
+          }
+        });
+      }
+      
       // API call function
       async function callGitAPI(action, params = {}) {
         // Show loading in terminal
         addTerminalOutput(`Executing git ${action}...`, 'command');
-
+        
         try {
           // Build query string
           const queryParams = new URLSearchParams({ action, ...params }).toString();
-
+          
           // Call API
           const response = await fetch(`https://github.raihanmiraj.com/api.php?${queryParams}`);
           const data = await response.json();
-
+          
           // Handle response
           if (data.error) {
             addTerminalOutput(`Error: ${data.error}`, 'error');
@@ -397,7 +498,7 @@
             data.output.split('\n').forEach(line => {
               addTerminalOutput(line, 'success');
             });
-
+            
             // Special handling for branch operations
             if (action === 'branch-list') {
               updateBranchList(data.branches || []);
@@ -420,19 +521,19 @@
               }
             }
           }
-
+          
           return data;
         } catch (error) {
           addTerminalOutput(`Network error: ${error.message}`, 'error');
           return { error: 'Network error occurred' };
         }
       }
-
+      
       // Add output to terminal
       function addTerminalOutput(message, type = 'info') {
         const outputLine = document.createElement('div');
         outputLine.className = 'output-line';
-
+        
         if (type === 'command') {
           outputLine.innerHTML = `<span class="text-green-400">$</span> ${message}`;
         } else if (type === 'success') {
@@ -442,18 +543,18 @@
         } else {
           outputLine.innerHTML = `<span class="text-gray-300">></span> ${message}`;
         }
-
+        
         terminal.insertBefore(outputLine, terminal.lastElementChild);
         terminal.scrollTop = terminal.scrollHeight;
       }
-
+      
       // Update branch list display
       function updateBranchList(branchArray) {
         branches = branchArray;
-
+        
         // Clear existing branches
         branchListContainer.innerHTML = '';
-
+        
         // Add each branch
         branches.forEach(branch => {
           const isActive = branch === currentBranch;
@@ -466,21 +567,21 @@
             </div>
             ${isActive ? '<span class="text-xs bg-purple-600 px-2 py-1 rounded">active</span>' : ''}
           `;
-
+          
           // Add click handler to switch branch
           if (!isActive) {
             branchElement.addEventListener('click', () => {
               callGitAPI('branch-switch', { name: branch });
             });
           }
-
+          
           branchListContainer.appendChild(branchElement);
         });
-
+        
         // Update branch selects
         updateBranchSelects();
       }
-
+      
       // Update branch select elements
       function updateBranchSelects() {
         // Switch branch select
@@ -491,7 +592,7 @@
           option.textContent = branch;
           switchBranchSelect.appendChild(option);
         });
-
+        
         // Delete branch select
         deleteBranchSelect.innerHTML = '<option value="">Select branch to delete</option>';
         branches.filter(b => b !== currentBranch).forEach(branch => {
@@ -501,14 +602,14 @@
           deleteBranchSelect.appendChild(option);
         });
       }
-
+      
       // Update branch display
       function updateBranchDisplay() {
         currentBranchElement.textContent = currentBranch;
         footerBranch.textContent = currentBranch;
         updateBranchList(branches);
       }
-
+      
       // Clear terminal
       document.getElementById('clearTerminal').addEventListener('click', () => {
         const lines = terminal.querySelectorAll('.output-line');
@@ -518,16 +619,16 @@
           }
         });
       });
-
+      
       // Button event handlers
       document.getElementById('pullBtn').addEventListener('click', () => {
         callGitAPI('pull');
       });
-
+      
       document.getElementById('pushBtn').addEventListener('click', () => {
         callGitAPI('push');
       });
-
+      
       document.getElementById('branchCreateForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const branchName = document.getElementById('newBranch').value.trim();
@@ -538,7 +639,7 @@
           addTerminalOutput('Error: Branch name cannot be empty', 'error');
         }
       });
-
+      
       document.getElementById('branchSwitchForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const branchName = document.getElementById('switchBranch').value;
@@ -548,7 +649,7 @@
           addTerminalOutput('Error: Please select a branch to switch to', 'error');
         }
       });
-
+      
       document.getElementById('deleteBranchBtn').addEventListener('click', () => {
         const branchName = document.getElementById('branchToDelete').value;
         if (branchName) {
@@ -559,22 +660,15 @@
           addTerminalOutput('Error: Please select a branch to delete', 'error');
         }
       });
-
-      // Initialize
-      async function initialize() {
-        // Fetch branches on load
-        const branchData = await callGitAPI('branch-list');
-
-        if (branchData.branches && branchData.branches.length > 0) {
-          branches = branchData.branches;
-          currentBranch = branches.includes('main') ? 'main' : branches[0];
-          updateBranchDisplay();
-        }
-      }
-
+      
+      // Save button handler
+      saveBtn.addEventListener('click', () => {
+        saveFileContent();
+      });
+      
+      // Initialize the application
       initialize();
     });
   </script>
 </body>
-
 </html>
