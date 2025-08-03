@@ -387,25 +387,35 @@
         }
       }
       
-      // Save file content to API
-      async function saveFileContent() {
-        const content = codeEditor.innerHTML;
-        
-        if (content === lastSavedContent) {
-          addTerminalOutput('No changes to save', 'info');
-          return;
-        }
-        
-        try {
-          addTerminalOutput('Saving test.html...', 'command');
-          
-          const response = await fetch('https://github.raihanmiraj.com/code/api.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ content })
-          });
+             // Save file content to API
+       async function saveFileContent() {
+         const content = codeEditor.innerHTML;
+         
+         if (content === lastSavedContent) {
+           addTerminalOutput('No changes to save', 'info');
+           return;
+         }
+         
+         try {
+           addTerminalOutput('Saving test.html...', 'command');
+           
+           // Reverse the HTML escaping to get actual HTML content
+           const unescapedContent = content
+             .replace(/&amp;/g, '&')
+             .replace(/&lt;/g, '<')
+             .replace(/&gt;/g, '>')
+             .replace(/&quot;/g, '"')
+             .replace(/&#39;/g, "'")
+             .replace(/<pre>/g, '')
+             .replace(/<\/pre>/g, '');
+           
+           const response = await fetch('https://github.raihanmiraj.com/code/api.php', {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json'
+             },
+             body: JSON.stringify({ content: unescapedContent })
+           });
           
           const data = await response.json();
           
