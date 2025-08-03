@@ -18,4 +18,3 @@ foreach (explode("\n", $output) as $line) {
 echo json_encode([
     'branches' => $branches,
 ]);
-?>

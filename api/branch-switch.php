@@ -7,5 +7,8 @@ if (empty($branch)) {
 }
 chdir(__DIR__ . '/../repo');
 $output = git_exec('git checkout ' . escapeshellarg($branch));
-echo json_encode(['output' => $output]);
-?>
+ 
+echo json_encode([
+    'status' => 'success',
+    'output' => $output
+]);

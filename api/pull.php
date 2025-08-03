@@ -18,4 +18,3 @@ echo json_encode([
     'status' => 'success',
     'output' => $output
 ]);
-?>

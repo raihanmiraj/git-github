@@ -24,7 +24,9 @@ $currentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
 
 // --- Delete Local Branch ---
 $localBranches = explode("\n", git_exec('git branch'));
-$localBranches = array_map(function($b) { return trim(ltrim($b, '* ')); }, $localBranches);
+$localBranches = array_map(function ($b) {
+    return trim(ltrim($b, '* '));
+}, $localBranches);
 
 if (in_array($branch, $localBranches)) {
     if ($currentBranch === $branch) {
@@ -40,7 +42,7 @@ if (in_array($branch, $localBranches)) {
 // --- Delete Remote Branch ---
 git_exec('git fetch --all 2>&1');  // Make sure remotes are updated
 $remoteBranches = explode("\n", git_exec('git branch -r'));
-$remoteBranches = array_map(function($b) {
+$remoteBranches = array_map(function ($b) {
     $b = trim($b);
     if (strpos($b, 'origin/') === 0) {
         return substr($b, 7);
@@ -55,5 +57,7 @@ if (in_array($branch, $remoteBranches)) {
     $results['remote'] = "Branch '$branch' does not exist on remote.";
 }
 
-echo json_encode($results);
-?>
+echo json_encode([
+    'status' => 'success',
+    'output' => $results
+]);

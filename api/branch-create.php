@@ -9,4 +9,3 @@ chdir(__DIR__ . '/');
 $output = git_exec('git checkout -b ' . escapeshellarg($branch));
 git_exec('git push -u origin ' . escapeshellarg($branch));
 echo json_encode(['output' => $output]);
-?>
