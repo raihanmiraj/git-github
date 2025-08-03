@@ -1,38 +1,42 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require __DIR__ . '/execute.php';
 
-require __DIR__ . '/execute.php';  // Your git_exec() helper function
+$branch = $_GET['name'] ?? '';
+$branch = trim($branch);
 
-if (!isset($_GET['name']) || empty(trim($_GET['name']))) {
+if (!$branch) {
     echo json_encode(['error' => 'Branch name is required']);
     exit;
 }
 
-$branch = trim($_GET['name']);
-
-// Sanitize branch name to avoid command injection
+// Sanitize branch name
 if (!preg_match('/^[\w\-\/]+$/', $branch)) {
     echo json_encode(['error' => 'Invalid branch name']);
     exit;
 }
 
-chdir(__DIR__ . '/../'); // Change to your git repo root folder
+chdir(__DIR__ . '/../');
 
-// Check if branch is current branch (cannot delete checked out branch)
+// Get current branch
 $currentBranch = trim(shell_exec('git rev-parse --abbrev-ref HEAD'));
+
+// If trying to delete current branch, switch to main first
 if ($currentBranch === $branch) {
-    echo json_encode(['error' => 'Cannot delete the branch currently checked out']);
-    exit;
+    // You can customize this to your default branch
+    $defaultBranch = 'main';
+    $switchResult = git_exec("git checkout " . escapeshellarg($defaultBranch));
+    if (strpos($switchResult, 'error') !== false) {
+        echo json_encode(['error' => "Failed to switch to $defaultBranch before deleting branch."]);
+        exit;
+    }
 }
 
 // Delete local branch
 $deleteLocal = git_exec("git branch -D " . escapeshellarg($branch) . " 2>&1");
 
-// Delete remote branch (optional, comment out if you don't want)
+// Delete remote branch
 $deleteRemote = git_exec("git push origin --delete " . escapeshellarg($branch) . " 2>&1");
 
 echo json_encode([
-    'output' => "Local delete:\n$deleteLocal\n\nRemote delete:\n$deleteRemote",
+    'output' => "Switched branch if needed:\n$currentBranch -> $defaultBranch\n\nLocal delete:\n$deleteLocal\n\nRemote delete:\n$deleteRemote",
 ]);
