@@ -1,6 +1,6 @@
 <?php
 require 'execute.php';
-chdir(__DIR__ . '/../repo');
+chdir(__DIR__ . '/../');
 git_exec('git add .');
 git_exec('git commit -m "Auto commit from PHP API"');
 $output = git_exec('git push');

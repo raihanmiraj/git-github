@@ -5,7 +5,7 @@ if (empty($branch)) {
     echo json_encode(['error' => 'Branch name required']);
     exit;
 }
-chdir(__DIR__ . '/../repo');
+chdir(__DIR__ . '/../');
 $output = git_exec('git checkout ' . escapeshellarg($branch));
  
 echo json_encode([
