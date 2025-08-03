@@ -56,10 +56,10 @@ try {
             
             $newContent = $data['content'];
             
-            // Basic validation - ensure it's HTML
-            if (strpos($newContent, '<!DOCTYPE html>') === false && strpos($newContent, '<html') === false) {
+            // Basic validation - ensure it contains HTML tags
+            if (strpos($newContent, '<') === false || strpos($newContent, '>') === false) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Content must be valid HTML']);
+                echo json_encode(['error' => 'Content must contain HTML tags']);
                 exit;
             }
             
