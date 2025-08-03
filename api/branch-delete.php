@@ -9,7 +9,7 @@ if (!$branch) {
     exit;
 }
 
-// Protect deleting main branch
+// Protect main branch from deletion
 if ($branch === 'main') {
     echo json_encode(['error' => 'You cannot delete the main branch.']);
     exit;
@@ -25,15 +25,15 @@ chdir(__DIR__ . '/../');  // path to your git repo root
 
 $results = [];
 
-// Check current branch
+// --- Always Check Current Branch First ---
 $currentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
 
-// Switch to main branch if deleting the currently checked-out branch
 if ($currentBranch === $branch) {
+    // Switch to main branch before deleting
     $checkout = git_exec('git checkout main 2>&1');
     $results['checkout'] = $checkout;
 
-    // Double-check if switch to main was successful
+    // Verify switch was successful
     $newCurrentBranch = trim(git_exec('git rev-parse --abbrev-ref HEAD'));
     if ($newCurrentBranch !== 'main') {
         echo json_encode(['error' => 'Failed to switch to main branch before deletion.', 'details' => $checkout]);
@@ -55,7 +55,7 @@ if (in_array($branch, $localBranches)) {
 }
 
 // --- Delete Remote Branch ---
-git_exec('git fetch --all 2>&1');  // Make sure remotes are updated
+git_exec('git fetch --all 2>&1');  // Update remote branches
 $remoteBranches = explode("\n", git_exec('git branch -r'));
 $remoteBranches = array_map(function ($b) {
     $b = trim($b);
